@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+<title>ⓡedeem2 · Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+:root{--bg:#0d1a33;--surface:#151515;--card:#1e1e1e;--card2:#222;--nav1:#2a2a2a;--nav2:#1a1a1a;--topbar:#000;--gold:#d4a017;--green:#6b8e23;--text:#e0e0e0;--muted:#888;--border:#2a2a2a;--bl:#333;--red:#f44336}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:'Roboto','Segoe UI',sans-serif;color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+button,input{font-family:inherit}
+
+/* LOGIN */
+#login-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.login-logo{font-family:Georgia,serif;font-style:italic;font-size:42px;color:orange;font-weight:700;margin-bottom:32px;text-align:center}
+.login-card{width:100%;max-width:380px;background:#1a1a1a;border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:14px;padding:32px}
+.lf-label{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.form-input{width:100%;background:#111;border:1px solid #444;border-radius:8px;height:44px;padding:0 14px;color:var(--text);font-size:14px;outline:none;transition:border-color .15s;margin-bottom:18px}
+.form-input:focus{border-color:var(--gold)}
+.login-btn{width:100%;background:var(--gold);color:#000;border:none;border-radius:8px;height:46px;font-weight:700;font-size:15px;cursor:pointer;transition:opacity .15s;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px}
+.login-btn:hover{opacity:.88}
+.login-btn:disabled{opacity:.6;cursor:not-allowed}
+.err-box{display:flex;align-items:center;gap:8px;background:#2a1212;border:1px solid #5a2020;border-radius:8px;padding:10px 14px;margin-bottom:16px;color:var(--red);font-size:13px}
+
+/* DASHBOARD */
+#dashboard{display:none;flex-direction:column;min-height:100vh}
+#dashboard.show{display:flex}
+
+/* TOP BAR */
+.top-bar{background:var(--topbar);border-bottom:1px solid var(--bl);padding:6px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px 12px;flex-shrink:0}
+.logo{font-family:Georgia,serif;font-style:italic;font-size:20px;color:orange;font-weight:700}
+.pts-row{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap;font-size:13px}
+.onhold-amt{color:var(--gold);font-weight:700}
+.onhold-lbl{color:var(--muted);font-size:11px}
+.countdown{color:var(--muted);font-size:11px;margin-left:5px}
+.pts-main{font-weight:700;font-size:16px}
+.pts-main small{color:var(--muted);font-weight:400;font-size:11px}
+
+/* NAV */
+.nav{background:linear-gradient(180deg,var(--nav1),var(--nav2));display:flex;align-items:center;justify-content:space-between;padding:0 16px;min-height:56px;border-bottom:1px solid #000;flex-wrap:wrap;gap:4px 12px;flex-shrink:0}
+.nav-left{display:flex;align-items:center;flex-wrap:wrap}
+.nav-tab{background:none;border:none;border-bottom:2px solid transparent;color:#a0a0a0;cursor:pointer;font-size:16px;font-weight:600;padding:18px 12px 16px;display:inline-flex;align-items:center;gap:5px;transition:color .2s}
+.nav-tab:hover{color:var(--gold)}
+.nav-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.icon-btn{background:#000;border:1px solid var(--bl);border-radius:6px;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;color:#b0b0b0;cursor:pointer;font-size:15px;transition:color .15s,border-color .15s}
+.icon-btn:hover{color:var(--gold);border-color:var(--gold)}
+.user-chip{display:flex;align-items:center;gap:8px;color:#fff;font-weight:600;font-size:15px;background:#1f1f1f;padding:4px 12px 4px 6px;border-radius:40px;border:1px solid var(--bl);cursor:pointer;position:relative;user-select:none}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:#000;font-size:15px;flex-shrink:0}
+.user-dd{position:absolute;top:calc(100% + 8px);right:0;background:#1a1a1a;border:1px solid var(--border);border-radius:8px;padding:4px;min-width:130px;box-shadow:0 8px 24px rgba(0,0,0,.7);display:none;z-index:200}
+.user-dd.open{display:block}
+.dd-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;background:none;border:none;border-radius:6px;color:#f06060;cursor:pointer;font-size:14px;transition:background .15s}
+.dd-item:hover{background:#2a1212}
+
+/* PAGE */
+.page-content{background:var(--surface);flex:1;padding:24px 20px}
+.tab-sec{display:none;max-width:820px;margin:0 auto}
+.tab-sec.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:.3;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.sec-title{font-size:24px;font-weight:500;color:#e8e8e8;border-left:5px solid var(--gold);padding-left:16px;display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.sec-title i{color:var(--gold)}
+.sec-desc{color:#aaa;font-size:15px;line-height:1.6;margin:10px 0 18px;padding-left:21px}
+.sub-head{color:var(--gold);font-size:12px;font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:.07em}
+
+/* STATS */
+.stat-grid{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;padding-left:21px}
+.stat-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;flex:1 1 110px}
+.s-lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.s-val{font-size:20px;font-weight:700;color:var(--green)}
+.s-val.gold{color:var(--gold)}
+.s-note{color:var(--muted);font-size:11px;margin-top:3px}
+
+/* MINI CARDS */
+.mini-grid{display:flex;flex-wrap:wrap;gap:16px;padding-left:21px}
+.mini-card{background:var(--card2);border-radius:12px;padding:16px 20px;flex:1 1 140px;border:1px solid var(--border);cursor:pointer;transition:border-color .15s}
+.mini-card:hover{border-color:var(--gold)}
+.mini-card.static{cursor:default}
+.mini-card.static:hover{border-color:var(--border)}
+.mini-card i{color:var(--gold);font-size:20px;display:block;margin-bottom:6px}
+.mini-card span{display:block;font-weight:500;color:#eee;font-size:15px}
+.mini-card small{color:var(--muted);font-size:13px}
+
+/* TASKS */
+.task-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.t-id{color:var(--gold);font-weight:700;font-size:14px}
+.t-badge{background:#0d1f0d;color:var(--green);font-size:12px;font-weight:600;padding:2px 8px;border-radius:10px;margin-left:8px}
+.t-desc{color:#ccc;font-size:14px;margin:6px 0 2px}
+.t-meta{color:var(--muted);font-size:12px}
+.start-btn{background:var(--gold);color:#000;border:none;border-radius:8px;padding:10px 20px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:opacity .15s}
+.start-btn:hover{opacity:.85}
+.empty-msg{color:#555;font-size:14px;padding-left:21px}
+
+/* STEP FLOW */
+.step-ind{display:flex;align-items:center;margin-bottom:20px;padding-left:21px}
+.step-c{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:#2e2e2e;color:#fff;flex-shrink:0;transition:background .3s}
+.step-c.act{background:var(--gold);color:#000}
+.step-c.done{background:var(--green)}
+.step-ln{width:48px;height:2px;background:#2e2e2e;transition:background .3s}
+.step-ln.done{background:var(--green)}
+.step-lbl{margin-left:12px;color:var(--muted);font-size:13px}
+.step-card{background:#1a1a1a;border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:12px;padding:28px;margin-left:21px}
+.sc-hdr{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.sc-tid{color:var(--gold);font-weight:700;font-size:14px}
+.sc-rwd{color:var(--muted);font-size:13px}
+.st-title{color:var(--text);font-size:16px;font-weight:600;margin-bottom:12px}
+.instr-box{background:#111;border-radius:8px;padding:16px 20px;margin-bottom:24px;border-left:3px solid var(--gold)}
+.instr-line{color:#ccc;font-size:14px;line-height:1.8}
+.hint-box{background:#111;border-radius:8px;padding:14px 18px;margin-bottom:18px;border-left:3px solid var(--muted)}
+.hint-txt{color:#ccc;font-size:14px}
+.st-desc{color:var(--muted);font-size:14px;margin-bottom:20px}
+.step-inp{width:100%;background:#111;border:1px solid #444;border-radius:8px;height:44px;padding:0 14px;color:var(--text);font-size:14px;outline:none;margin-bottom:24px;transition:border-color .15s}
+.step-inp:focus{border-color:var(--gold)}
+.btn-out{background:transparent;color:var(--gold);border:2px solid var(--gold);border-radius:8px;padding:10px 22px;font-weight:700;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s}
+.btn-out:hover{opacity:.85}
+.btn-out:disabled{opacity:.5;cursor:not-allowed}
+.btn-gold{background:var(--gold);color:#000;border:none;border-radius:8px;padding:10px 22px;font-weight:700;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s}
+.btn-gold:hover{opacity:.88}
+.btn-gold:disabled{opacity:.5;cursor:not-allowed}
+
+/* LOADING / RESULT */
+.load-screen{background:#1a1a1a;border:1px solid var(--border);border-radius:12px;padding:64px 28px;text-align:center;margin-left:21px}
+.load-ico{color:var(--gold);font-size:52px;margin-bottom:20px;display:block;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-title{color:var(--text);font-size:17px;font-weight:600}
+.load-sub{color:var(--muted);font-size:13px;margin-top:8px}
+.res-screen{background:#1a1a1a;border-radius:12px;padding:52px 28px;text-align:center;margin-left:21px}
+.res-screen.ok{border:1px solid var(--green);border-top:3px solid var(--green)}
+.res-screen.exp{border:1px solid var(--border);border-top:3px solid var(--gold)}
+.res-ico{font-size:58px;margin-bottom:16px;display:block}
+.res-title{color:#fff;font-size:22px;font-weight:700;margin-bottom:10px}
+.res-pts{font-size:34px;font-weight:800;margin-bottom:6px}
+.res-pts.green{color:var(--green)}
+.res-pts.gold{color:var(--gold)}
+.res-note{color:var(--muted);font-size:14px;margin-bottom:8px}
+.res-note2{color:var(--muted);font-size:13px;margin-bottom:32px}
+.btn-back{background:transparent;border:1px solid var(--border);border-radius:8px;padding:10px 24px;color:var(--muted);cursor:pointer;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.btn-back:hover{border-color:var(--muted)}
+
+/* TABLE */
+.tbl-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:10px}
+table{width:100%;border-collapse:collapse}
+th{background:#1a1a1a;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;padding:10px 12px;text-align:left}
+td{padding:10px 12px;font-size:14px;color:var(--text);border-top:1px solid var(--border)}
+tr:hover td{background:rgba(255,255,255,.02)}
+.r1{color:#FFD700;font-weight:700}.r2{color:#C0C0C0;font-weight:700}.r3{color:#CD7F32;font-weight:700}.rn{color:var(--muted);font-weight:700}
+.sb{padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600}
+.sb-on{background:#0d1f0d;color:#4caf50}
+.sb-off{background:#1f0d0d;color:var(--red)}
+.you-star{color:var(--gold);font-weight:600}
+
+/* REWARD CARDS */
+.rew-grid{padding-left:21px;display:flex;flex-wrap:wrap;gap:14px}
+.rew-wrap{flex:1 1 220px;max-width:340px}
+.rew-hdr{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;transition:border-color .15s}
+.rew-hdr:hover,.rew-hdr.open{border-color:var(--gold)}
+.rew-hdr.open{border-radius:12px 12px 0 0}
+.rew-icon{width:44px;height:44px;border-radius:10px;background:#2a2a1a;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rew-icon i{color:var(--gold);font-size:20px}
+.rew-name{font-weight:600;font-size:15px;color:var(--text);margin-bottom:3px}
+.rew-cost-ok{color:var(--green);font-size:13px;font-weight:700}
+.rew-cost-no{color:#f06060;font-size:13px;font-weight:700}
+.rew-panel{background:#161616;border:1px solid var(--gold);border-top:none;border-radius:0 0 12px 12px;padding:20px 22px}
+.rew-panel-lock{background:#161616;border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;padding:20px 22px;display:flex;align-items:center;gap:14px}
+.lock-circle{width:42px;height:42px;border-radius:50%;background:#2a1212;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px}
+.lock-msg{color:#f06060;font-weight:700;font-size:14px;margin-bottom:4px}
+.lock-sub{color:var(--muted);font-size:13px}
+.lock-sub strong{color:var(--gold)}
+.rew-info-lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.rew-code{display:inline-block;background:#111;color:var(--green);padding:8px 16px;border-radius:8px;font-size:17px;font-weight:700;font-family:monospace;letter-spacing:.08em;border:1px solid var(--border)}
+.rew-bal-lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.rew-bal-val{color:var(--green);font-weight:700;font-size:20px}
+.rew-pair{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:2000;padding:20px;backdrop-filter:blur(4px)}
+.overlay.show{display:flex}
+.modal-card{background:#1a1a1a;border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:14px;padding:32px;width:100%;max-width:400px;box-shadow:0 16px 64px rgba(0,0,0,.85)}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.modal-title{color:var(--text);font-size:18px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;transition:color .15s}
+.modal-close:hover{color:var(--text)}
+.modal-desc{color:var(--muted);font-size:14px;margin-bottom:18px}
+.promo-err{display:none;align-items:center;gap:8px;background:#2a1212;border:1px solid #5a2020;border-radius:8px;padding:10px 14px;margin-bottom:14px;color:var(--red);font-size:13px}
+.promo-err.show{display:flex}
+.modal-success{display:none;text-align:center;padding:24px 0 8px}
+.modal-success.show{display:block}
+.modal-default{display:block}
+.modal-default.hidden{display:none}
+.ms-ico{font-size:56px;color:var(--green);margin-bottom:18px;display:block}
+.ms-title{color:#fff;font-size:20px;font-weight:700;margin-bottom:8px}
+.ms-pts{color:var(--green);font-size:32px;font-weight:800;margin-bottom:6px}
+.ms-note{color:var(--muted);font-size:13px;margin-bottom:28px}
+.btn-clear{background:transparent;border:1px solid var(--border);border-radius:8px;padding:10px 28px;color:var(--muted);cursor:pointer;font-size:14px}
+.btn-clear:hover{border-color:var(--muted)}
+
+/* CHAT */
+.chat-fab{position:fixed;bottom:24px;right:24px;width:54px;height:54px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.55);z-index:1000;font-size:22px;color:#000;transition:transform .2s ease,box-shadow .2s ease}
+.chat-fab.show{display:flex}
+.chat-fab:hover{transform:scale(1.12);box-shadow:0 6px 28px rgba(212,160,23,.45)}
+.chat-fab:active{transform:scale(.96)}
+.chat-panel{position:fixed;bottom:90px;right:24px;width:330px;height:500px;background:#1a1a1a;border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:14px;display:none;flex-direction:column;box-shadow:0 10px 48px rgba(0,0,0,.75);z-index:999;overflow:hidden}
+.chat-panel.open{display:flex;animation:chatIn .2s ease}
+@keyframes chatIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.chat-hdr{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.chat-hdr-l{display:flex;align-items:center;gap:8px}
+.chat-hdr-title{color:var(--text);font-weight:700;font-size:14px}
+.chat-hdr-icon{color:var(--gold);font-size:15px}
+.chat-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;transition:color .15s}
+.chat-close:hover{color:var(--text)}
+.banned-badge{background:#2a1212;color:var(--red);font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;display:none}
+.banned-badge.show{display:inline-flex;align-items:center;gap:4px}
+.chat-msgs{flex:1;overflow-y:auto;padding:12px}
+.chat-msgs::-webkit-scrollbar{width:4px}
+.chat-msgs::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
+.chat-empty{color:var(--muted);font-size:13px;text-align:center;margin-top:40px}
+.chat-msg{display:flex;flex-direction:column;margin-bottom:10px}
+.chat-msg.own{align-items:flex-end}
+.chat-msg.other{align-items:flex-start}
+.msg-uid{font-size:10px;color:var(--muted);margin-bottom:3px;font-weight:600}
+.chat-msg.own .msg-uid{color:var(--gold)}
+.msg-bubble{background:#242424;border:1px solid var(--border);border-radius:10px 10px 10px 2px;padding:8px 12px;max-width:230px;font-size:13px;color:var(--text);word-break:break-word;line-height:1.5}
+.chat-msg.own .msg-bubble{background:#2a1f00;border-color:#4a3600;border-radius:10px 10px 2px 10px;color:var(--gold)}
+.chat-inp-area{padding:10px 12px 12px;border-top:1px solid var(--border);flex-shrink:0}
+.ban-err-msg{display:none;align-items:center;gap:6px;background:#2a1212;border:1px solid #5a2020;border-radius:6px;padding:6px 10px;margin-bottom:8px;color:var(--red);font-size:12px;font-weight:700}
+.ban-err-msg.show{display:flex}
+.chat-inp-row{display:flex;gap:8px}
+.chat-inp{flex:1;background:#111;border:1px solid #444;border-radius:8px;height:38px;padding:0 12px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s}
+.chat-inp:focus{border-color:var(--gold)}
+.chat-inp.ban-inp{border-color:var(--red)!important;color:#666}
+.chat-send{background:var(--gold);border:none;border-radius:8px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:14px;color:#000;transition:opacity .15s,background .15s}
+.chat-send:disabled{opacity:.45;cursor:default}
+.chat-send.banned{background:#2a2a2a;color:#555;cursor:not-allowed;opacity:1}
+
+/* API ERROR TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#2a1212;border:1px solid #5a2020;color:var(--red);padding:10px 20px;border-radius:8px;font-size:13px;z-index:3000;display:none;white-space:nowrap}
+.toast.show{display:block;animation:toastIn .2s ease}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* RESPONSIVE */
+@media(max-width:620px){
+  .top-bar{flex-direction:column;align-items:center;gap:8px;padding:8px}
+  .nav{flex-direction:column;padding:6px 12px;min-height:auto}
+  .nav-left{justify-content:center}
+  .nav-tab{font-size:14px;padding:10px 8px}
+  .nav-right{justify-content:center}
+  .page-content{padding:16px 12px}
+  .chat-panel{width:calc(100vw - 16px);right:8px}
+  .modal-card{padding:24px 20px}
+  .step-card{margin-left:0;padding:20px}
+  .step-ind{padding-left:0}
+  .stat-grid,.mini-grid{padding-left:0}
+  .rew-grid{padding-left:0}
+}
+</style>
+</head>
+<body>
+
+<!-- ========== LOGIN ========== -->
+<div id="login-screen">
+  <div class="login-logo"><span>ⓡ</span>eedem<span style="color:orange">2</span></div>
+  <div class="login-card">
+    <div class="err-box" id="login-err" style="display:none">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="login-err-msg"></span>
+    </div>
+    <label class="lf-label" for="li-uid">User ID</label>
+    <input class="form-input" type="text" id="li-uid" placeholder="e.g. U001" autocomplete="username">
+    <label class="lf-label" for="li-pw">Password</label>
+    <input class="form-input" type="password" id="li-pw" placeholder="••••••••" autocomplete="current-password" style="margin-bottom:24px">
+    <button class="login-btn" id="login-btn" onclick="doLogin()">
+      <span id="login-btn-txt">Sign In</span>
+    </button>
+    <button id="test-btn" onclick="testConnection()" style="width:100%;margin-top:10px;background:transparent;border:1px solid #333;border-radius:8px;height:38px;color:#888;font-size:13px;cursor:pointer;transition:border-color .15s,color .15s" onmouseover="this.style.borderColor='#d4a017';this.style.color='#d4a017'" onmouseout="this.style.borderColor='#333';this.style.color='#888'">
+      <span id="test-btn-txt">Test Connection</span>
+    </button>
+  </div>
+</div>
+
+<!-- ========== DASHBOARD ========== -->
+<div id="dashboard">
+  <div class="top-bar">
+    <div class="logo"><span>ⓡ</span>eedem<span style="color:orange">2</span></div>
+    <div class="pts-row">
+      <span>
+        <span class="onhold-lbl">On Hold: </span>
+        <span class="onhold-amt" id="tb-onhold">0.00</span>
+        <span class="onhold-lbl"> PTS</span>
+        <span class="countdown" id="tb-countdown" style="display:none"></span>
+      </span>
+      <span class="pts-main"><span id="tb-pts">0.00</span> <small>PTS</small></span>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-left">
+      <button class="nav-tab active" data-tab="home"   onclick="switchTab('home')"><i class="fas fa-home"></i></button>
+      <button class="nav-tab"        data-tab="earn"   onclick="switchTab('earn')"><i class="fas fa-coins"></i> Earn</button>
+      <button class="nav-tab"        data-tab="redeem" onclick="switchTab('redeem')"><i class="fas fa-gift"></i> Redeem</button>
+      <button class="nav-tab"        data-tab="win"    onclick="switchTab('win')"><i class="fas fa-trophy"></i> Win</button>
+      <button class="nav-tab"        data-tab="forums" onclick="switchTab('forums')"><i class="fas fa-comments"></i> Forums</button>
+      <button class="nav-tab"        data-tab="faq"    onclick="switchTab('faq')"><i class="fas fa-question-circle"></i> FAQ</button>
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn" title="Redeem Promo Code" onclick="openPromo()"><i class="fas fa-ticket-alt"></i></button>
+      <button class="icon-btn"><i class="fas fa-bullhorn"></i></button>
+      <div class="user-chip" id="user-chip" onclick="toggleUserDD()">
+        <div class="avatar"><i class="fas fa-headphones"></i></div>
+        <span id="chip-name">User</span>
+        <div class="user-dd" id="user-dd">
+          <button class="dd-item" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Log Out</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-content">
+
+    <!-- HOME -->
+    <div id="tab-home" class="tab-sec active">
+      <h2 class="sec-title"><i class="fas fa-home"></i> Home</h2>
+      <p class="sec-desc">WELCOME TO REDEEM2</p>
+      <div class="stat-grid" id="home-stats"></div>
+      <div class="mini-grid">
+        <div class="mini-card" onclick="switchTab('earn')"><i class="fas fa-check-circle"></i><span>Do tasks</span><small>Everyday</small></div>
+        <div class="mini-card" onclick="openPromo()"><i class="fas fa-star"></i><span>Redeem Bonus Codes</span><small>Once a week</small></div>
+        <div class="mini-card" onclick="switchTab('redeem')"><i class="fas fa-clock"></i><span>Redeem Rewards</span><small>Once a day limit</small></div>
+      </div>
+    </div>
+
+    <!-- EARN -->
+    <div id="tab-earn" class="tab-sec">
+      <h2 class="sec-title"><i class="fas fa-coins"></i> Earn</h2>
+      <p class="sec-desc">Select a task below to get started.</p>
+      <div id="earn-container"></div>
+    </div>
+
+    <!-- REDEEM -->
+    <div id="tab-redeem" class="tab-sec">
+      <h2 class="sec-title"><i class="fas fa-gift"></i> Redeem</h2>
+      <p class="sec-desc">Click a reward to reveal it.</p>
+      <div class="rew-grid" id="rew-grid"></div>
+    </div>
+
+    <!-- WIN -->
+    <div id="tab-win" class="tab-sec">
+      <h2 class="sec-title"><i class="fas fa-trophy"></i> Win</h2>
+      <p class="sec-desc">Sweepstakes, contests, draws.</p>
+      <div class="mini-grid" style="margin-bottom:24px">
+        <div class="mini-card static"><i class="fas fa-medal"></i><span>Weekly Draw</span><small>1 entry left</small></div>
+        <div class="mini-card static"><i class="fas fa-dice"></i><span>Lucky Spin</span><small>cost: 20 PTS</small></div>
+        <div class="mini-card static"><i class="fas fa-crown"></i><span>Leaderboard</span><small>#7 this month</small></div>
+      </div>
+      <div class="sub-head" style="padding-left:21px">Leaderboard</div>
+      <div id="leaderboard-wrap" style="padding-left:21px"></div>
+      <p style="margin-top:12px;padding-left:21px;color:var(--muted);font-size:14px">🏁 New contest tomorrow</p>
+    </div>
+
+    <!-- FORUMS -->
+    <div id="tab-forums" class="tab-sec">
+      <h2 class="sec-title"><i class="fas fa-comments"></i> Forums</h2>
+      <p class="sec-desc">Discuss strategies, share tips.</p>
+      <div class="mini-grid">
+        <div class="mini-card static"><i class="fas fa-bullhorn"></i><span>Announcements</span><small>2 new</small></div>
+        <div class="mini-card static"><i class="fas fa-lightbulb"></i><span>Tips &amp; Tricks</span><small>hot topic</small></div>
+        <div class="mini-card static"><i class="fas fa-users"></i><span>General Chat</span><small>12 online</small></div>
+      </div>
+      <p style="margin-top:12px;padding-left:21px;color:var(--green);font-size:14px">↩ 4 unread replies</p>
+    </div>
+
+    <!-- FAQ -->
+    <div id="tab-faq" class="tab-sec">
+      <h2 class="sec-title"><i class="fas fa-question-circle"></i> FAQ</h2>
+      <p class="sec-desc">Frequently asked questions.</p>
+      <div class="mini-grid">
+        <div class="mini-card" onclick="switchTab('earn')"><i class="fas fa-coins"></i><span>How to earn?</span><small>see Earn</small></div>
+        <div class="mini-card static"><i class="fas fa-exchange-alt"></i><span>Redemption rules</span><small>min. 50 PTS</small></div>
+        <div class="mini-card static"><i class="fas fa-clock"></i><span>Points expire?</span><small>12 months</small></div>
+        <div class="mini-card static"><i class="fas fa-user-cog"></i><span>Account help</span><small>contact support</small></div>
+      </div>
+      <p style="margin-top:12px;padding-left:21px;color:#777;font-size:14px">📖 Full FAQ in help center.</p>
+    </div>
+
+  </main>
+</div>
+
+<!-- ========== PROMO MODAL ========== -->
+<div class="overlay" id="promo-overlay" onclick="closePromoOnBg(event)">
+  <div class="modal-card">
+    <div class="modal-hdr">
+      <span class="modal-title">Redeem Promo Code</span>
+      <button class="modal-close" onclick="closePromo()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-default" id="promo-default">
+      <p class="modal-desc">Paste your promo code below to receive bonus points.</p>
+      <input class="form-input" type="text" id="promo-input" placeholder="Enter promo code" style="font-family:monospace;letter-spacing:.04em;margin-bottom:12px">
+      <div class="promo-err" id="promo-err"><i class="fas fa-times-circle"></i><span id="promo-err-txt"></span></div>
+      <button class="btn-gold" id="promo-submit-btn" onclick="submitPromo()" style="width:100%;justify-content:center;height:46px;font-size:15px">
+        <span id="promo-btn-txt">Redeem Code</span>
+      </button>
+    </div>
+    <div class="modal-success" id="promo-success">
+      <i class="fas fa-check-circle ms-ico"></i>
+      <div class="ms-title">Code Redeemed!</div>
+      <div class="ms-pts" id="ms-pts-val">+2 PTS</div>
+      <p class="ms-note">Added to your On Hold balance. Releases in 1 hour.</p>
+      <button class="btn-clear" onclick="closePromo()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== CHAT ========== -->
+<button class="chat-fab" id="chat-fab" onclick="toggleChat()" title="Open Chat">
+  <i class="fas fa-comments" id="chat-fab-icon"></i>
+</button>
+
+<div class="chat-panel" id="chat-panel">
+  <div class="chat-hdr">
+    <div class="chat-hdr-l">
+      <i class="fas fa-comments chat-hdr-icon"></i>
+      <span class="chat-hdr-title">Live Chat</span>
+      <span class="banned-badge" id="banned-badge"><i class="fas fa-lock"></i> BANNED</span>
+    </div>
+    <button class="chat-close" onclick="toggleChat()"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="chat-msgs" id="chat-msgs"><p class="chat-empty">Loading…</p></div>
+  <div class="chat-inp-area">
+    <div class="ban-err-msg" id="ban-err-msg"><i class="fas fa-lock"></i> Banned — you cannot send messages.</div>
+    <div class="chat-inp-row">
+      <input class="chat-inp" type="text" id="chat-inp" placeholder="Type a message…" onkeydown="chatEnter(event)" oninput="onChatInput()">
+      <button class="chat-send" id="chat-send-btn" onclick="sendChatMsg()" title="Send">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="api-toast"></div>
+
+<!-- ========== CORS ERROR OVERLAY ========== -->
+<div id="cors-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;padding:20px">
+  <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-top:3px solid #d4a017;border-radius:14px;padding:32px;max-width:480px;width:100%;font-family:'Roboto',sans-serif">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <span style="font-size:32px">🚫</span>
+      <div>
+        <div style="color:#d4a017;font-size:18px;font-weight:700">CORS Error</div>
+        <div style="color:#888;font-size:13px">Cross-origin request blocked</div>
+      </div>
+    </div>
+
+    <p style="color:#aaa;font-size:14px;line-height:1.75;margin-bottom:20px">
+      Your Retool Workflow is blocking requests from this page.<br>
+      Follow these steps to fix it:
+    </p>
+
+    <div style="background:#111;border-radius:10px;padding:20px;margin-bottom:20px;border-left:3px solid #d4a017">
+      <div style="color:#e0e0e0;font-size:13px;line-height:2">
+        <b style="color:#d4a017">Step 1</b> &nbsp;Open your Retool Workflow<br>
+        <b style="color:#d4a017">Step 2</b> &nbsp;Click the <span style="background:#222;padding:1px 6px;border-radius:4px;color:#d4a017">Webhook</span> trigger block<br>
+        <b style="color:#d4a017">Step 3</b> &nbsp;In the right panel &rarr; <b>HTTP Response Headers</b><br>
+        <b style="color:#d4a017">Step 4</b> &nbsp;Add these 3 headers:
+      </div>
+      <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">
+        <div style="background:#0d1a0d;border:1px solid #1a3a1a;border-radius:6px;padding:8px 12px;font-family:monospace;font-size:12px">
+          <span style="color:#888">Key:</span> <span style="color:#6b8e23">Access-Control-Allow-Origin</span><br>
+          <span style="color:#888">Value:</span> <span style="color:#e0e0e0">*</span>
+        </div>
+        <div style="background:#0d1a0d;border:1px solid #1a3a1a;border-radius:6px;padding:8px 12px;font-family:monospace;font-size:12px">
+          <span style="color:#888">Key:</span> <span style="color:#6b8e23">Access-Control-Allow-Headers</span><br>
+          <span style="color:#888">Value:</span> <span style="color:#e0e0e0">Content-Type, X-Workflow-Api-Key</span>
+        </div>
+        <div style="background:#0d1a0d;border:1px solid #1a3a1a;border-radius:6px;padding:8px 12px;font-family:monospace;font-size:12px">
+          <span style="color:#888">Key:</span> <span style="color:#6b8e23">Access-Control-Allow-Methods</span><br>
+          <span style="color:#888">Value:</span> <span style="color:#e0e0e0">POST, OPTIONS</span>
+        </div>
+      </div>
+      <div style="color:#e0e0e0;font-size:13px;margin-top:14px;line-height:1.75">
+        <b style="color:#d4a017">Step 5</b> &nbsp;Click <b>Save &amp; Deploy</b> in Retool<br>
+        <b style="color:#d4a017">Step 6</b> &nbsp;Click <b>Retry</b> below
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px">
+      <button onclick="location.reload()" style="flex:1;background:#d4a017;color:#000;border:none;border-radius:8px;height:44px;font-weight:700;font-size:14px;cursor:pointer">🔄 Reload Page</button>
+      <button onclick="closeCorsOverlay()" style="background:transparent;border:1px solid #333;border-radius:8px;height:44px;padding:0 18px;color:#888;cursor:pointer;font-size:14px">Dismiss</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCRIPT ========== -->
+<script>
+// ============================================================
+//  ▶  FILL IN YOUR RETOOL WORKFLOW DETAILS BELOW
+// ============================================================
+const WORKFLOW_URL = 'https://YOUR-DOMAIN.retool.com/api/v2/workflows/YOUR-WORKFLOW-ID/startTrigger';
+const WORKFLOW_KEY = 'YOUR-WORKFLOW-API-KEY';
+// ============================================================
+//
+//  ▶  RETOOL WORKFLOW CORS SETUP (required for external HTML)
+//
+//  In your Retool Workflow:
+//  1. Click the Webhook trigger block
+//  2. In the right panel find "HTTP Response" or "CORS"
+//  3. Add header:  Access-Control-Allow-Origin  →  *
+//  4. Add header:  Access-Control-Allow-Headers →  Content-Type, X-Workflow-Api-Key
+//  5. Add header:  Access-Control-Allow-Methods →  POST, OPTIONS
+//  6. Save & Deploy
+//
+//  OR — paste this at the very TOP of your workflow Code block
+//  to handle CORS and OPTIONS preflight automatically:
+//
+//  if (trigger.data && trigger.data.__method === 'OPTIONS') {
+//    return {}; // Retool handles OPTIONS with the headers above
+//  }
+//
+// ============================================================
+
+// ── CORE API ─────────────────────────────────────────────────
+let _corsBlocked = false;
+
+async function api(action, params = {}) {
+  if (_corsBlocked) { showCorsOverlay(); return { success: false, error: 'CORS' }; }
+  try {
+    const res = await fetch(WORKFLOW_URL, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Workflow-Api-Key': WORKFLOW_KEY,
+      },
+      body: JSON.stringify({ action, ...params }),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  } catch (err) {
+    const msg = String(err);
+    // Detect CORS / network failure
+    const isCors = msg.includes('CORS')
+      || msg.includes('Load failed')
+      || msg.includes('Failed to fetch')
+      || msg.includes('NetworkError')
+      || msg.includes('Network request failed')
+      || msg.includes('TypeError');
+    if (isCors) {
+      _corsBlocked = true;
+      showCorsOverlay();
+      return { success: false, error: 'CORS' };
+    }
+    showToast('Error: ' + err.message);
+    return { success: false, error: msg };
+  }
+}
+
+function showToast(msg) {
+  const t = $('api-toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+function showCorsOverlay() {
+  const o = $('cors-overlay');
+  o.style.display      = 'flex';
+  o.style.alignItems   = 'center';
+  o.style.justifyContent = 'center';
+}
+function closeCorsOverlay() {
+  _corsBlocked = false;
+  $('cors-overlay').style.display = 'none';
+}
+
+// ── STATE ────────────────────────────────────────────────────
+let S = {
+  user: null,        // { userid, pts, onhold, status, CompletionRate }
+  tasks: [],
+  promos: [],
+  rewards: [],
+  users: [],
+  isBanned: false,
+  earn: { step: 'list', task: null, link: '', final: '', matched: false },
+  expandedReward: null,
+  chatOpen: false,
+  chatPoll: null,
+  holdTimer: null,
+  holdExpiry: null,
+};
+
+// ── UTILS ────────────────────────────────────────────────────
+const $   = id => document.getElementById(id);
+const esc = s  => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmt = n  => parseFloat(n || 0).toFixed(2);
+const norm = s => s.trim().toLowerCase().replace(/\/+$/, '').replace(/\s+/g, ' ');
+
+// ── AUTH ─────────────────────────────────────────────────────
+async function doLogin() {
+  const uid = $('li-uid').value.trim();
+  const pw  = $('li-pw').value;
+  if (!uid || !pw) { showLoginErr('Please enter your User ID and password.'); return; }
+
+  $('login-btn').disabled = true;
+  $('login-btn-txt').textContent = 'Signing in…';
+  hideLoginErr();
+
+  const result = await api('login', { userid: uid, password: pw });
+
+  $('login-btn').disabled = false;
+  $('login-btn-txt').textContent = 'Sign In';
+
+  if (!result.success || !result.user) {
+    showLoginErr(result.error || 'Login failed. Try again.');
+    return;
+  }
+
+  S.user = { ...result.user };
+  localStorage.setItem('r2_userid', S.user.userid);
+  enterDashboard();
+  await loadAllData();
+}
+
+function showLoginErr(msg) { $('login-err').style.display = 'flex'; $('login-err-msg').textContent = msg; }
+function hideLoginErr()    { $('login-err').style.display = 'none'; }
+
+async function testConnection() {
+  const btn = $('test-btn');
+  const txt = $('test-btn-txt');
+  btn.disabled = true;
+  txt.textContent = 'Testing…';
+  hideLoginErr();
+
+  if (WORKFLOW_URL.includes('YOUR-DOMAIN') || WORKFLOW_KEY.includes('YOUR-WORKFLOW')) {
+    showLoginErr('Fill in WORKFLOW_URL and WORKFLOW_KEY in the HTML first.');
+    btn.disabled = false;
+    txt.textContent = 'Test Connection';
+    return;
+  }
+
+  const result = await api('getUsers');
+  btn.disabled = false;
+
+  if (result && (Array.isArray(result) || result.success !== false)) {
+    txt.textContent = '✅ Connected!';
+    btn.style.borderColor = '#6b8e23';
+    btn.style.color = '#6b8e23';
+    setTimeout(() => { txt.textContent = 'Test Connection'; btn.style.borderColor = '#333'; btn.style.color = '#888'; }, 3000);
+  } else {
+    txt.textContent = '❌ Failed — check URL & Key';
+    btn.style.borderColor = '#f44336';
+    btn.style.color = '#f44336';
+    setTimeout(() => { txt.textContent = 'Test Connection'; btn.style.borderColor = '#333'; btn.style.color = '#888'; }, 4000);
+  }
+}
+
+async function doLogout() {
+  if (S.holdTimer) clearInterval(S.holdTimer);
+  if (S.chatPoll)  clearInterval(S.chatPoll);
+  if (S.user) localStorage.removeItem('r2_hold_expiry_' + S.user.userid);
+  localStorage.removeItem('r2_userid');
+  S = { user:null, tasks:[], promos:[], rewards:[], users:[], isBanned:false,
+        earn:{step:'list',task:null,link:'',final:'',matched:false},
+        expandedReward:null, chatOpen:false, chatPoll:null, holdTimer:null, holdExpiry:null };
+  $('dashboard').classList.remove('show');
+  $('login-screen').style.display = 'flex';
+  $('user-dd').classList.remove('open');
+  $('chat-fab').classList.remove('show');
+  $('chat-panel').classList.remove('open');
+  switchTab('home');
+}
+
+function toggleUserDD() { $('user-dd').classList.toggle('open'); }
+document.addEventListener('click', e => { if (!$('user-chip').contains(e.target)) $('user-dd').classList.remove('open'); });
+
+// ── SESSION ──────────────────────────────────────────────────
+function enterDashboard() {
+  $('login-screen').style.display = 'none';
+  $('dashboard').classList.add('show');
+  $('chat-fab').classList.add('show');
+  $('chip-name').textContent = S.user.userid;
+  updateHeader();
+  // Restore hold timer
+  const exp = parseInt(localStorage.getItem('r2_hold_expiry_' + S.user.userid) || '0');
+  if (exp > Date.now()) { S.holdExpiry = exp; startCountdown(); }
+  else if (exp > 0)     { localStorage.removeItem('r2_hold_expiry_' + S.user.userid); releaseHold(); }
+}
+
+async function loadAllData() {
+  const [tasks, promos, rewards, users] = await Promise.all([
+    api('getTasks'), api('getPromos'), api('getRewards'), api('getUsers'),
+  ]);
+  S.tasks   = Array.isArray(tasks)   ? tasks   : [];
+  S.promos  = Array.isArray(promos)  ? promos  : [];
+  S.rewards = Array.isArray(rewards) ? rewards : [];
+  S.users   = Array.isArray(users)   ? users   : [];
+  renderHome();
+  renderEarn();
+  renderRedeem();
+  renderLeaderboard();
+}
+
+// ── NAV ──────────────────────────────────────────────────────
+function switchTab(id) {
+  document.querySelectorAll('.tab-sec').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  $('tab-' + id).classList.add('active');
+  const btn = document.querySelector('.nav-tab[data-tab="' + id + '"]');
+  if (btn) btn.classList.add('active');
+  $('user-dd').classList.remove('open');
+}
+
+// ── HEADER ───────────────────────────────────────────────────
+function updateHeader() {
+  if (!S.user) return;
+  $('tb-pts').textContent    = fmt(S.user.pts);
+  $('tb-onhold').textContent = fmt(S.user.onhold);
+}
+
+function updateUserLocal(updates) {
+  Object.assign(S.user, updates);
+  // Sync back into S.users for leaderboard
+  const idx = S.users.findIndex(u => u.userid === S.user.userid);
+  if (idx >= 0) Object.assign(S.users[idx], updates);
+  updateHeader();
+}
+
+// ── HOME ─────────────────────────────────────────────────────
+function renderHome() {
+  const u = S.user;
+  if (!u) return;
+  $('home-stats').innerHTML =
+    sc('Your PTS',    fmt(u.pts),    'green') +
+    sc('On Hold',     fmt(u.onhold), 'gold', S.holdExpiry ? '<div class="s-note" id="home-cd"></div>' : '') +
+    sc('Members',     S.users.length)  +
+    sc('Tasks',       S.tasks.length)  +
+    sc('Promo Codes', S.promos.length);
+}
+function sc(lbl, val, cls='', extra='') {
+  return `<div class="stat-card"><div class="s-lbl">${lbl}</div><div class="s-val ${cls||''}">${val}</div>${extra}</div>`;
+}
+
+// ── EARN ─────────────────────────────────────────────────────
+function renderEarn() {
+  const c = $('earn-container');
+  if (!c) return;
+  const e = S.earn;
+
+  if (e.step === 'list') {
+    if (!S.tasks.length) { c.innerHTML = '<p class="empty-msg">No tasks available right now.</p>'; return; }
+    c.innerHTML = S.tasks.map(t =>
+      `<div class="task-card">
+        <div>
+          <div><span class="t-id">${esc(t['task#'])}</span><span class="t-badge">+${esc(t.Reward)} PTS</span></div>
+          <p class="t-desc">${esc((t.Details||'').split('\n')[0])}</p>
+          <p class="t-meta">3-step verification</p>
+        </div>
+        <button class="start-btn" onclick="earnStart('${esc(t['task#'])}')">Start Task <i class="fas fa-chevron-right"></i></button>
+      </div>`).join('');
+    return;
+  }
+
+  if (e.step === 'loading') {
+    c.innerHTML = `<div class="load-screen"><i class="fas fa-spinner load-ico"></i><p class="load-title">Verifying your submission…</p><p class="load-sub">Please wait</p></div>`;
+    return;
+  }
+
+  if (e.step === 'result') {
+    c.innerHTML = e.matched
+      ? `<div class="res-screen ok"><span class="res-ico">✅</span><div class="res-title">Task Complete!</div><div class="res-pts green">+${esc(e.task.Reward)} PTS</div><p class="res-note">Reward added to your On Hold balance.</p><p class="res-note2">⏱ Releases to main balance in 1 hour.</p><button class="btn-back" onclick="earnReset()"><i class="fas fa-arrow-left"></i> Back to Tasks</button></div>`
+      : `<div class="res-screen exp"><span class="res-ico">⚠️</span><div class="res-title">Expected Reward</div><div class="res-pts gold">${esc(e.task.Reward)} PTS</div><p class="res-note" style="margin-bottom:32px">Your submission has been reviewed.</p><button class="btn-back" onclick="earnReset()"><i class="fas fa-arrow-left"></i> Back to Tasks</button></div>`;
+    return;
+  }
+
+  // Steps 1-3
+  const sn = e.step === 'step1' ? 1 : e.step === 'step2' ? 2 : 3;
+  const ind = [1,2,3].map(n =>
+    `<div class="step-c ${n<sn?'done':n===sn?'act':''}">${n<sn?'✓':n}</div>${n<3?`<div class="step-ln ${n<sn?'done':''}"></div>`:''}`
+  ).join('') + `<span class="step-lbl">Step ${sn} of 3</span>`;
+
+  let body = '';
+  if (sn === 1) {
+    body = `<div class="st-title">Read the instructions carefully</div>
+      <div class="instr-box">${(e.task.Details||'').split('\n').map(l=>`<div class="instr-line">${esc(l)}</div>`).join('')}</div>
+      <button class="btn-out" onclick="earnGo('step2')">I've read the instructions <i class="fas fa-chevron-right"></i></button>`;
+  } else if (sn === 2) {
+    body = `<div class="st-title">Paste the confirmation link</div>
+      <p class="st-desc">Complete the task, then paste the URL of the page you landed on.</p>
+      <input class="step-inp" type="url" id="step-inp" placeholder="https://example.com/page" value="${esc(e.link)}" oninput="S.earn.link=this.value;$('step-next').disabled=!this.value.trim()">
+      <button class="btn-out" id="step-next" onclick="earnGo('step3')" ${!e.link.trim()?'disabled':''}>Next <i class="fas fa-chevron-right"></i></button>`;
+  } else {
+    body = `<div class="st-title">Final verification</div>
+      <div class="hint-box"><p class="hint-txt">${esc(e.task.Detail2||'')}</p></div>
+      <input class="step-inp" id="step-inp" placeholder="Enter your answer" value="${esc(e.final)}" oninput="S.earn.final=this.value;$('step-submit').disabled=!this.value.trim()">
+      <button class="btn-gold" id="step-submit" onclick="earnSubmit()" ${!e.final.trim()?'disabled':''}>Submit Task</button>`;
+  }
+
+  c.innerHTML = `<div class="step-ind">${ind}</div>
+    <div class="step-card">
+      <div class="sc-hdr"><span class="sc-tid">${esc(e.task['task#'])}</span><span class="sc-rwd">· +${esc(e.task.Reward)} PTS reward</span></div>
+      ${body}
+    </div>`;
+}
+
+function earnStart(id) {
+  const t = S.tasks.find(x => x['task#'] === id);
+  if (!t) return;
+  S.earn = { step:'step1', task:t, link:'', final:'', matched:false };
+  renderEarn();
+}
+function earnGo(step) { S.earn.step = step; renderEarn(); }
+function earnReset()  { S.earn = { step:'list', task:null, link:'', final:'', matched:false }; renderEarn(); renderHome(); }
+
+async function earnSubmit() {
+  const e = S.earn;
+  e.step = 'loading';
+  renderEarn();
+
+  const matched = norm(e.link) === norm(e.task.LinkConfirm || '')
+               && norm(e.final) === norm(e.task.FinalConfirm || '');
+
+  if (matched) {
+    const result = await api('completeTask', {
+      taskId: e.task['task#'],
+      userid: S.user.userid,
+      reward: e.task.Reward,
+    });
+    if (result.success) {
+      updateUserLocal({ onhold: parseFloat(result.newOnHold).toFixed(2) });
+      S.tasks = S.tasks.filter(t => t['task#'] !== e.task['task#']);
+      beginHoldTimer();
+    }
+  }
+
+  e.matched = matched;
+  e.step = 'result';
+  renderEarn();
+}
+
+// ── REDEEM ───────────────────────────────────────────────────
+function renderRedeem() {
+  if (!S.user) return;
+  const userPts = parseFloat(S.user.pts) || 0;
+  if (!S.rewards.length) { $('rew-grid').innerHTML = '<p class="empty-msg">No rewards available yet.</p>'; return; }
+
+  $('rew-grid').innerHTML = S.rewards.map(r => {
+    const cost = parseFloat(r.cost) || 0;
+    const can  = userPts >= cost;
+    const open = S.expandedReward === r.reward_name;
+    const safeName = (r.reward_name||'').replace(/'/g, "\\'");
+
+    let panel = '';
+    if (open) {
+      panel = can
+        ? `<div class="rew-panel"><div class="rew-pair">
+            <div><div class="rew-info-lbl">Reward Info</div><span class="rew-code">${esc(r.info)}</span></div>
+            <div><div class="rew-bal-lbl">Your Balance</div><div class="rew-bal-val">${fmt(S.user.pts)} PTS</div></div>
+           </div></div>`
+        : `<div class="rew-panel-lock">
+            <div class="lock-circle">🔒</div>
+            <div><div class="lock-msg">Insufficient Funds</div>
+            <p class="lock-sub">You need <strong>${fmt(cost - userPts)} more PTS</strong> to unlock this reward.</p></div>
+           </div>`;
+    }
+
+    return `<div class="rew-wrap">
+      <div class="rew-hdr${open?' open':''}" onclick="toggleReward('${safeName}')">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div class="rew-icon"><i class="fas fa-gift"></i></div>
+          <div><div class="rew-name">${esc(r.reward_name)}</div>
+               <div class="${can?'rew-cost-ok':'rew-cost-no'}">${esc(r.cost)} PTS</div></div>
+        </div>
+        <i class="fas fa-chevron-${open?'up':'down'}" style="color:var(--muted)"></i>
+      </div>${panel}
+    </div>`;
+  }).join('');
+}
+
+function toggleReward(name) {
+  S.expandedReward = S.expandedReward === name ? null : name;
+  renderRedeem();
+}
+
+// ── LEADERBOARD ──────────────────────────────────────────────
+function renderLeaderboard() {
+  const sorted = [...S.users].sort((a,b) => (parseFloat(b.pts)||0) - (parseFloat(a.pts)||0));
+  const uid    = S.user ? S.user.userid : '';
+  if (!sorted.length) { $('leaderboard-wrap').innerHTML = ''; return; }
+  $('leaderboard-wrap').innerHTML = `<div class="tbl-wrap"><table>
+    <thead><tr><th>Rank</th><th>User</th><th>PTS</th><th>Status</th><th>Completion</th></tr></thead>
+    <tbody>
+      ${sorted.map((u,i) => `<tr>
+        <td class="${['r1','r2','r3'][i]||'rn'}">#${i+1}</td>
+        <td class="${u.userid===uid?'you-star':''}">${esc(u.userid)}${u.userid===uid?' ★':''}</td>
+        <td style="color:var(--green);font-weight:700">${esc(u.pts)}</td>
+        <td><span class="sb ${u.status==='active'?'sb-on':'sb-off'}">${esc(u.status)}</span></td>
+        <td style="color:var(--muted)">${esc(u.CompletionRate)}</td>
+      </tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+// ── PROMO MODAL ──────────────────────────────────────────────
+function openPromo() {
+  $('promo-overlay').classList.add('show');
+  $('promo-input').value = '';
+  $('promo-err').classList.remove('show');
+  $('promo-success').classList.remove('show');
+  $('promo-default').classList.remove('hidden');
+  $('promo-btn-txt').textContent = 'Redeem Code';
+  $('promo-submit-btn').disabled = false;
+  $('user-dd').classList.remove('open');
+  setTimeout(() => $('promo-input').focus(), 80);
+}
+function closePromo()           { $('promo-overlay').classList.remove('show'); }
+function closePromoOnBg(e)      { if (e.target === $('promo-overlay')) closePromo(); }
+
+async function submitPromo() {
+  const code = $('promo-input').value.trim().toLowerCase();
+  if (!code) return;
+
+  $('promo-err').classList.remove('show');
+  $('promo-btn-txt').textContent = 'Redeeming…';
+  $('promo-submit-btn').disabled = true;
+
+  const result = await api('redeemPromo', { code, userid: S.user.userid });
+
+  if (!result.success) {
+    $('promo-err-txt').textContent = result.error || 'Failed to redeem code';
+    $('promo-err').classList.add('show');
+    $('promo-btn-txt').textContent = 'Redeem Code';
+    $('promo-submit-btn').disabled = false;
+    return;
+  }
+
+  updateUserLocal({ onhold: parseFloat(result.newOnHold).toFixed(2) });
+  beginHoldTimer();
+  $('ms-pts-val').textContent = '+' + result.amount + ' PTS';
+  $('promo-default').classList.add('hidden');
+  $('promo-success').classList.add('show');
+  renderHome();
+  renderRedeem();
+}
+
+// ── HOLD TIMER ───────────────────────────────────────────────
+function beginHoldTimer() {
+  const expiry = Date.now() + 3600000;
+  S.holdExpiry  = expiry;
+  localStorage.setItem('r2_hold_expiry_' + S.user.userid, expiry);
+  startCountdown();
+  renderHome();
+}
+
+function startCountdown() {
+  if (S.holdTimer) clearInterval(S.holdTimer);
+  S.holdTimer = setInterval(tickCountdown, 1000);
+  tickCountdown();
+}
+
+function tickCountdown() {
+  if (!S.holdExpiry) { clearInterval(S.holdTimer); return; }
+  const rem = S.holdExpiry - Date.now();
+  if (rem <= 0) {
+    clearInterval(S.holdTimer);
+    S.holdExpiry = null;
+    localStorage.removeItem('r2_hold_expiry_' + S.user.userid);
+    $('tb-countdown').style.display = 'none';
+    releaseHold();
+    return;
+  }
+  const m = Math.floor(rem / 60000), s = Math.floor((rem % 60000) / 1000);
+  const txt = `(${m}:${String(s).padStart(2,'0')})`;
+  $('tb-countdown').textContent = txt;
+  $('tb-countdown').style.display = 'inline';
+  const hcd = $('home-cd');
+  if (hcd) hcd.textContent = '⏱ ' + txt;
+}
+
+async function releaseHold() {
+  if (!S.user) return;
+  const result = await api('releaseHold', { userid: S.user.userid });
+  if (result.success && result.pts !== undefined) {
+    updateUserLocal({ pts: parseFloat(result.pts).toFixed(2), onhold: '0' });
+    renderHome();
+    renderRedeem();
+  }
+}
+
+// ── CHAT ─────────────────────────────────────────────────────
+function toggleChat() {
+  S.chatOpen = !S.chatOpen;
+  $('chat-panel').classList.toggle('open', S.chatOpen);
+  $('chat-fab-icon').className = S.chatOpen ? 'fas fa-times' : 'fas fa-comments';
+  if (S.chatOpen) {
+    renderChatMessages();
+    S.chatPoll = setInterval(renderChatMessages, 4000);
+    setTimeout(() => $('chat-inp').focus(), 80);
+  } else {
+    clearInterval(S.chatPoll);
+    S.chatPoll = null;
+  }
+}
+
+async function renderChatMessages() {
+  if (!S.user) return;
+  const data    = await api('getMessages');
+  const msgs    = data.messages      || [];
+  const banned  = data.bannedUserids || [];
+  const uid     = S.user.userid;
+  S.isBanned    = banned.includes(uid);
+
+  // Ban UI
+  $('banned-badge').className = 'banned-badge' + (S.isBanned ? ' show' : '');
+  const sb = $('chat-send-btn'), ci = $('chat-inp');
+  if (S.isBanned) {
+    sb.className = 'chat-send banned';
+    sb.innerHTML = '<i class="fas fa-lock"></i>';
+    ci.className = 'chat-inp ban-inp';
+    ci.placeholder = 'You are banned from chat';
+  } else {
+    sb.className = 'chat-send';
+    sb.innerHTML = '<i class="fas fa-paper-plane"></i>';
+    ci.className = 'chat-inp';
+    ci.placeholder = 'Type a message…';
+  }
+
+  const cont = $('chat-msgs');
+  const atBottom = cont.scrollHeight - cont.scrollTop - cont.clientHeight < 60;
+
+  if (!msgs.length) { cont.innerHTML = '<p class="chat-empty">No messages yet. Say hi! 👋</p>'; return; }
+  cont.innerHTML = msgs.map(m => {
+    const own = m.userid === uid;
+    return `<div class="chat-msg ${own?'own':'other'}">
+      <span class="msg-uid">${esc(m.userid)}</span>
+      <div class="msg-bubble">${esc(m.message)}</div>
+    </div>`;
+  }).join('');
+  if (atBottom) cont.scrollTop = cont.scrollHeight;
+}
+
+function onChatInput() {
+  const val = $('chat-inp').value;
+  if (S.isBanned && val.length > 0) {
+    $('ban-err-msg').classList.add('show');
+    $('chat-inp').style.borderColor = 'var(--red)';
+  } else {
+    $('ban-err-msg').classList.remove('show');
+    $('chat-inp').style.borderColor = '';
+  }
+}
+
+function chatEnter(e) { if (e.key === 'Enter') sendChatMsg(); }
+
+async function sendChatMsg() {
+  if (!S.user || S.isBanned) return;
+  const val = $('chat-inp').value.trim();
+  if (!val) return;
+  const sb = $('chat-send-btn');
+  sb.disabled = true;
+  $('chat-inp').value = '';
+  $('ban-err-msg').classList.remove('show');
+  await api('sendMessage', { userid: S.user.userid, message: val });
+  await renderChatMessages();
+  sb.disabled = false;
+  $('chat-inp').focus();
+}
+
+// ── KEYBOARD ─────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if ($('login-screen').style.display !== 'none') doLogin();
+    if ($('promo-overlay').classList.contains('show')) submitPromo();
+  }
+  if (e.key === 'Escape') {
+    closePromo();
+    $('user-dd').classList.remove('open');
+  }
+});
+
+// ── INIT ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const savedUid = localStorage.getItem('r2_userid');
+  if (!savedUid) return;
+
+  // Silently restore session using saved userid
+  $('login-btn').disabled = true;
+  $('login-btn-txt').textContent = 'Restoring session…';
+
+  const users = await api('getUsers');
+  const fresh = Array.isArray(users) ? users.find(u => u.userid === savedUid) : null;
+
+  $('login-btn').disabled = false;
+  $('login-btn-txt').textContent = 'Sign In';
+
+  if (fresh) {
+    S.user = { ...fresh };
+    enterDashboard();
+    await loadAllData();
+  } else {
+    // User no longer exists or API failed
+    localStorage.removeItem('r2_userid');
+  }
+});
+</script>
+</body>
+</html>
