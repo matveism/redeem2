@@ -915,9 +915,8 @@ async function earnSubmit() {
       ]);
       
       if (result && result.success) {
-        // FIX: Use the values returned from the server
-        // The server should return newOnHold (the on-hold balance after adding reward)
-        // and newPts (the main balance, unchanged)
+        // ✅ FIX: Use the values from the server response
+        // The server should ADD the reward to on-hold balance
         const newOnHold = parseFloat(result.newOnHold || 0);
         const newPts = parseFloat(result.newPts || S.user.pts || 0);
         
