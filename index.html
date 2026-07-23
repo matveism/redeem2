@@ -39,6 +39,12 @@
     .pts-main small{color:var(--muted);font-weight:400;font-size:11px}
     .pts-main.negative{color:var(--red)}
 
+    /* NOTIFICATION BELL */
+    .notif-badge{position:relative;display:inline-flex}
+    .notif-badge .badge-count{position:absolute;top:-8px;right:-8px;background:var(--red);color:#fff;border-radius:50%;width:20px;height:20px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #000;animation:pulse 1.5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+    .notif-badge .badge-count.hidden{display:none}
+
     /* PROMO BAR - NEW USER */
     .promo-bar{background:linear-gradient(135deg,#1a0a0a,#2a1a0a);border:1px solid var(--gold);border-radius:8px;padding:12px 20px;margin:0 0 16px 21px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;animation:glowPulse 2s ease-in-out infinite}
     @keyframes glowPulse{0%,100%{border-color:var(--gold);box-shadow:0 0 10px rgba(212,160,23,0.1)}50%{border-color:#ffd700;box-shadow:0 0 25px rgba(212,160,23,0.3)}}
@@ -220,11 +226,19 @@
     .btn-clear{background:transparent;border:1px solid var(--border);border-radius:8px;padding:10px 28px;color:var(--muted);cursor:pointer;font-size:14px}
     .btn-clear:hover{border-color:var(--muted)}
 
+    /* NOTIFICATION PERMISSION TOAST */
+    .notif-permission-toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a2a1a;border:1px solid var(--green);color:#eee;padding:14px 24px;border-radius:12px;font-size:14px;z-index:3000;display:none;max-width:400px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.6)}
+    .notif-permission-toast.show{display:block;animation:toastIn .3s ease}
+    .notif-permission-toast button{background:var(--gold);color:#000;border:none;border-radius:6px;padding:6px 16px;font-weight:700;cursor:pointer;margin-left:10px}
+    .notif-permission-toast button:hover{opacity:.85}
+
     /* CHAT */
     .chat-fab{position:fixed;bottom:24px;right:24px;width:54px;height:54px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.55);z-index:1000;font-size:22px;color:#000;transition:transform .2s ease,box-shadow .2s ease}
     .chat-fab.show{display:flex}
     .chat-fab:hover{transform:scale(1.12);box-shadow:0 6px 28px rgba(212,160,23,.45)}
     .chat-fab:active{transform:scale(.96)}
+    .chat-fab .notif-dot{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--red);border-radius:50%;border:2px solid #000;display:none;animation:pulse 1.5s ease-in-out infinite}
+    .chat-fab .notif-dot.show{display:block}
     .chat-panel{position:fixed;bottom:90px;right:24px;width:330px;height:500px;background:#1a1a1a;border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:14px;display:none;flex-direction:column;box-shadow:0 10px 48px rgba(0,0,0,.75);z-index:999;overflow:hidden}
     .chat-panel.open{display:flex;animation:chatIn .2s ease}
     @keyframes chatIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -279,6 +293,7 @@
       .rew-grid{padding-left:0}
       .promo-bar{padding:10px 14px;margin:0 0 12px 0}
       .promo-bar .progress-track{width:80px}
+      .notif-permission-toast{width:calc(100% - 32px);bottom:80px;padding:12px 16px;font-size:13px}
     }
   </style>
 </head>
@@ -320,7 +335,7 @@
     </div>
   </div>
 
-  <!-- PROMO BAR - New User Signup Fee -->
+  <!-- PROMO BAR - NEW USER -->
   <div id="promo-bar" class="promo-bar" style="display:none;">
     <div class="promo-icon">🎯</div>
     <div class="promo-text">
@@ -453,9 +468,18 @@
   </div>
 </div>
 
+<!-- ========== NOTIFICATION PERMISSION TOAST ========== -->
+<div class="notif-permission-toast" id="notif-permission-toast">
+  <i class="fas fa-bell" style="color:var(--gold);margin-right:8px;"></i>
+  Enable notifications to get alerted when you receive new messages.
+  <button onclick="requestNotificationPermission()">Enable</button>
+  <button onclick="dismissNotificationToast()" style="background:transparent;color:var(--muted);margin-left:4px;font-size:12px;">Later</button>
+</div>
+
 <!-- ========== CHAT ========== -->
 <button class="chat-fab" id="chat-fab" onclick="toggleChat()" title="Open Chat">
   <i class="fas fa-comments" id="chat-fab-icon"></i>
+  <span class="notif-dot" id="chat-notif-dot"></span>
 </button>
 
 <div class="chat-panel" id="chat-panel">
@@ -562,7 +586,10 @@ let S = {
   holdTimer: null,
   holdExpiry: null,
   tasksCompleted: 0,
-  signupFeeCleared: false
+  signupFeeCleared: false,
+  lastMessageCount: 0,
+  unreadCount: 0,
+  notificationPermission: 'default'
 };
 
 // ── UTILS ────────────────────────────────────────────────────
@@ -579,6 +606,105 @@ const norm = s => {
   if (s === undefined || s === null) return '';
   return String(s).trim().toLowerCase().replace(/\/+$/, '').replace(/\s+/g, ' ');
 };
+
+// ── NOTIFICATIONS ────────────────────────────────────────────
+function checkNotificationSupport() {
+  return 'Notification' in window;
+}
+
+function getNotificationPermission() {
+  if (!checkNotificationSupport()) return 'denied';
+  return Notification.permission;
+}
+
+async function requestNotificationPermission() {
+  if (!checkNotificationSupport()) {
+    showToast('Notifications are not supported on this browser.');
+    return;
+  }
+  
+  try {
+    const permission = await Notification.requestPermission();
+    S.notificationPermission = permission;
+    localStorage.setItem('r2_notification_permission', permission);
+    
+    if (permission === 'granted') {
+      showToast('🔔 Notifications enabled! You\'ll get alerts for new messages.');
+      $('notif-permission-toast').classList.remove('show');
+      // Send a test notification
+      sendBrowserNotification('✅ Notifications Enabled', 'You will now receive alerts for new messages.');
+    } else if (permission === 'denied') {
+      showToast('❌ Notification permission denied. You can enable it in browser settings.');
+    }
+  } catch (err) {
+    showToast('Error requesting notification permission: ' + err.message);
+  }
+}
+
+function sendBrowserNotification(title, body, tag) {
+  if (!checkNotificationSupport()) return false;
+  if (Notification.permission !== 'granted') return false;
+  
+  try {
+    const options = {
+      body: body,
+      icon: '🔔',
+      tag: tag || 'chat-notification',
+      requireInteraction: true,
+      silent: false
+    };
+    
+    const notification = new Notification(title, options);
+    
+    // Close notification after 5 seconds
+    setTimeout(() => notification.close(), 5000);
+    
+    // Handle click - open chat
+    notification.onclick = function() {
+      window.focus();
+      if (!$('chat-panel').classList.contains('open')) {
+        toggleChat();
+      }
+      notification.close();
+    };
+    
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+function checkAndRequestNotification() {
+  const saved = localStorage.getItem('r2_notification_permission');
+  if (saved) {
+    S.notificationPermission = saved;
+  } else if (checkNotificationSupport()) {
+    S.notificationPermission = Notification.permission;
+  }
+  
+  // Show permission toast if not granted or denied
+  if (checkNotificationSupport() && 
+      Notification.permission === 'default' && 
+      !localStorage.getItem('r2_notification_dismissed')) {
+    setTimeout(() => {
+      $('notif-permission-toast').classList.add('show');
+    }, 3000);
+  }
+}
+
+function dismissNotificationToast() {
+  $('notif-permission-toast').classList.remove('show');
+  localStorage.setItem('r2_notification_dismissed', 'true');
+}
+
+function updateChatNotificationDot(show) {
+  const dot = $('chat-notif-dot');
+  if (show && S.unreadCount > 0) {
+    dot.classList.add('show');
+  } else {
+    dot.classList.remove('show');
+  }
+}
 
 // ── AUTH ─────────────────────────────────────────────────────
 async function doLogin() {
@@ -605,6 +731,9 @@ async function doLogin() {
     localStorage.setItem('r2_userid', S.user.userid);
     enterDashboard();
     await loadAllData();
+    
+    // Check notification permission
+    checkAndRequestNotification();
   } catch (err) {
     $('login-btn').disabled = false;
     $('login-btn-txt').textContent = 'Sign In';
@@ -658,13 +787,14 @@ async function doLogout() {
   S = { user:null, tasks:[], promos:[], rewards:[], users:[], isBanned:false,
         earn:{step:'list',task:null,link:'',final:'',matched:false},
         expandedReward:null, chatOpen:false, chatPoll:null, holdTimer:null, holdExpiry:null,
-        tasksCompleted:0, signupFeeCleared:false };
+        tasksCompleted:0, signupFeeCleared:false, lastMessageCount:0, unreadCount:0,
+        notificationPermission:'default' };
   $('dashboard').classList.remove('show');
   $('login-screen').style.display = 'flex';
   $('user-dd').classList.remove('open');
   $('chat-fab').classList.remove('show');
   $('chat-panel').classList.remove('open');
-  $('promo-bar').style.display = 'none';
+  $('notif-permission-toast').classList.remove('show');
   switchTab('home');
 }
 
@@ -692,6 +822,12 @@ function enterDashboard() {
   const pts = parseFloat(S.user.pts) || 0;
   if (pts < 0 && !S.signupFeeCleared) {
     showPromoBar();
+  }
+  
+  // Load notification permission
+  const savedPerm = localStorage.getItem('r2_notification_permission');
+  if (savedPerm) {
+    S.notificationPermission = savedPerm;
   }
 }
 
@@ -723,7 +859,6 @@ function showPromoBar() {
 
 function updatePromoBar() {
   const pts = parseFloat(S.user ? S.user.pts : 0) || 0;
-  const tasksNeeded = Math.max(0, Math.ceil(Math.abs(pts) / 1)); // Each task gives 1 PTS towards clearing debt
   const completed = S.tasksCompleted || 0;
   const progress = Math.min(100, (completed / 5) * 100);
   
@@ -749,6 +884,7 @@ async function clearSignupFee() {
       if (result.success) {
         updateUserLocal({ pts: '0.00' });
         showToast('🎉 Congratulations! Your signup fee has been cleared!');
+        sendBrowserNotification('🎉 Signup Fee Cleared!', 'You have completed 5 tasks and your -5 PTS balance has been cleared!');
       }
     } catch (err) {
       // Silent fail
@@ -948,6 +1084,11 @@ async function earnSubmit() {
         renderHome();
         updatePromoBar();
         e.matched = true;
+        
+        // Send notification for task completion
+        if (S.tasksCompleted === 5) {
+          sendBrowserNotification('🎯 Task Milestone Reached!', 'You have completed 5 tasks! Your signup fee is being cleared.');
+        }
       } else {
         e.matched = false;
         if (result && result.error) {
@@ -986,7 +1127,7 @@ function renderRedeem() {
 
   $('rew-grid').innerHTML = S.rewards.map(r => {
     const cost = parseFloat(r.cost) || 0;
-    const canAfford = userPts >= cost && userPts >= 0; // Can't redeem with negative balance
+    const canAfford = userPts >= cost && userPts >= 0;
     const open = S.expandedReward === r.reward_name;
     const safeName = (r.reward_name||'').replace(/'/g, "\\'");
     const revealed = r._revealed || false;
@@ -1095,6 +1236,7 @@ async function confirmReward(name) {
       renderRedeem();
       renderHome();
       showToast('✅ Reward redeemed successfully!');
+      sendBrowserNotification('🎁 Reward Redeemed!', `You have successfully redeemed ${reward.reward_name}!`);
     } else {
       showToast('Failed to redeem: ' + (result.error || 'Unknown error'));
     }
@@ -1109,14 +1251,13 @@ function renderLeaderboard() {
   const uid    = S.user ? S.user.userid : '';
   if (!sorted.length) { $('leaderboard-wrap').innerHTML = ''; return; }
   $('leaderboard-wrap').innerHTML = `<div class="tbl-wrap"><table>
-    <thead><tr><th>Rank</th><th>User</th><th>PTS</th><th>Status</th><th>Completion</th></tr></thead>
+    <thead><tr><th>Rank</th><th>User</th><th>PTS</th><th>Status</th></tr></thead>
     <tbody>
       ${sorted.map((u,i) => `<tr>
         <td class="${['r1','r2','r3'][i]||'rn'}">#${i+1}</td>
         <td class="${u.userid===uid?'you-star':''}">${esc(u.userid)}${u.userid===uid?' ★':''}</td>
         <td style="color:${parseFloat(u.pts||0) < 0 ? 'var(--red)' : 'var(--green)'};font-weight:700">${esc(u.pts)}</td>
         <td><span class="sb ${u.status==='active'?'sb-on':'sb-off'}">${esc(u.status)}</span></td>
-        <td style="color:var(--muted)">${esc(u.CompletionRate)}</td>
       </tr>`).join('')}
     </tbody></table></div>`;
 }
@@ -1226,7 +1367,11 @@ function toggleChat() {
   S.chatOpen = !S.chatOpen;
   $('chat-panel').classList.toggle('open', S.chatOpen);
   $('chat-fab-icon').className = S.chatOpen ? 'fas fa-times' : 'fas fa-comments';
+  
   if (S.chatOpen) {
+    // Reset unread count when chat opens
+    S.unreadCount = 0;
+    updateChatNotificationDot(false);
     renderChatMessages();
     S.chatPoll = setInterval(renderChatMessages, 4000);
     setTimeout(() => $('chat-inp').focus(), 80);
@@ -1262,7 +1407,45 @@ async function renderChatMessages() {
     const cont = $('chat-msgs');
     const atBottom = cont.scrollHeight - cont.scrollTop - cont.clientHeight < 60;
 
-    if (!msgs.length) { cont.innerHTML = '<p class="chat-empty">No messages yet. Say hi! 👋</p>'; return; }
+    // Check for new messages for notification
+    const currentCount = msgs.length;
+    const isChatOpen = $('chat-panel').classList.contains('open');
+    
+    // Check for new messages from other users
+    if (currentCount > S.lastMessageCount && S.lastMessageCount > 0) {
+      // Find new messages that aren't from the current user
+      const newMsgs = msgs.slice(S.lastMessageCount);
+      const otherUserMsgs = newMsgs.filter(m => m.userid !== uid);
+      
+      if (otherUserMsgs.length > 0 && !isChatOpen) {
+        S.unreadCount += otherUserMsgs.length;
+        updateChatNotificationDot(true);
+        
+        // Send browser notification for new messages
+        const lastMsg = otherUserMsgs[otherUserMsgs.length - 1];
+        const sender = lastMsg.userid;
+        const message = lastMsg.message.length > 50 ? lastMsg.message.substring(0, 50) + '...' : lastMsg.message;
+        
+        sendBrowserNotification(
+          `💬 New message from ${sender}`,
+          message,
+          'chat-' + Date.now()
+        );
+        
+        // Also play a subtle sound or vibration if possible
+        if (navigator.vibrate) {
+          navigator.vibrate(100);
+        }
+      }
+    }
+    
+    S.lastMessageCount = currentCount;
+
+    if (!msgs.length) { 
+      cont.innerHTML = '<p class="chat-empty">No messages yet. Say hi! 👋</p>'; 
+      return; 
+    }
+    
     cont.innerHTML = msgs.map(m => {
       const own = m.userid === uid;
       return `<div class="chat-msg ${own?'own':'other'}">
@@ -1270,7 +1453,9 @@ async function renderChatMessages() {
         <div class="msg-bubble">${esc(m.message)}</div>
       </div>`;
     }).join('');
+    
     if (atBottom) cont.scrollTop = cont.scrollHeight;
+    
   } catch (err) {
     // Silent fail for chat
   }
@@ -1338,6 +1523,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       S.user = { ...fresh };
       enterDashboard();
       await loadAllData();
+      checkAndRequestNotification();
     } else {
       localStorage.removeItem('r2_userid');
     }
