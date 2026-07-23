@@ -807,16 +807,26 @@ function renderEarn() {
   const e = S.earn;
 
   if (e.step === 'list') {
-    if (!S.tasks.length) { c.innerHTML = '<p class="empty-msg">No tasks available right now.</p>'; return; }
-    c.innerHTML = S.tasks.map((t) =>
-      `<div class="task-card">
+    if (!S.tasks || !S.tasks.length) { 
+      c.innerHTML = '<p class="empty-msg">No tasks available right now.</p>'; 
+      return; 
+    }
+    c.innerHTML = S.tasks.map((t) => {
+      // SAFE: Check if Details exists before using split
+      const details = t.Details || 'Complete the task as described.';
+      const firstLine = details.split('\n')[0] || details;
+      const reward = t.Reward || '0';
+      const taskId = t['task#'] || 'Unknown';
+      
+      return `<div class="task-card">
         <div>
-          <div><span class="t-id">${esc(t['task#'])}</span><span class="t-badge">+${esc(t.Reward)} PTS</span></div>
-          <p class="t-desc">${esc((t.Details||'').split('\n')[0])}</p>
+          <div><span class="t-id">${esc(taskId)}</span><span class="t-badge">+${esc(reward)} PTS</span></div>
+          <p class="t-desc">${esc(firstLine)}</p>
           <p class="t-meta">3-step verification</p>
         </div>
-        <button class="start-btn" onclick="earnStart('${esc(t['task#'])}')">Start Task <i class="fas fa-chevron-right"></i></button>
-      </div>`).join('');
+        <button class="start-btn" onclick="earnStart('${esc(taskId)}')">Start Task <i class="fas fa-chevron-right"></i></button>
+      </div>`;
+    }).join('');
     return;
   }
 
@@ -826,9 +836,16 @@ function renderEarn() {
   }
 
   if (e.step === 'result') {
+    const reward = e.task ? (e.task.Reward || '0') : '0';
     c.innerHTML = e.matched
-      ? `<div class="res-screen ok"><span class="res-ico">✅</span><div class="res-title">Task Complete!</div><div class="res-pts green">+${esc(e.task.Reward)} PTS</div><p class="res-note">Reward added to your On Hold balance.</p><p class="res-note2">⏱ Releases to main balance in 1 hour.</p><button class="btn-back" onclick="earnReset()"><i class="fas fa-arrow-left"></i> Back to Tasks</button></div>`
-      : `<div class="res-screen exp"><span class="res-ico">⚠️</span><div class="res-title">Expected Reward</div><div class="res-pts gold">${esc(e.task.Reward)} PTS</div><p class="res-note" style="margin-bottom:32px">Your submission has been reviewed.</p><button class="btn-back" onclick="earnReset()"><i class="fas fa-arrow-left"></i> Back to Tasks</button></div>`;
+      ? `<div class="res-screen ok"><span class="res-ico">✅</span><div class="res-title">Task Complete!</div><div class="res-pts green">+${esc(reward)} PTS</div><p class="res-note">Reward added to your On Hold balance.</p><p class="res-note2">⏱ Releases to main balance in 1 hour.</p><button class="btn-back" onclick="earnReset()"><i class="fas fa-arrow-left"></i> Back to Tasks</button></div>`
+      : `<div class="res-screen exp"><span class="res-ico">⚠️</span><div class="res-title">Expected Reward</div><div class="res-pts gold">${esc(reward)} PTS</div><p class="res-note" style="margin-bottom:32px">Your submission has been reviewed.</p><button class="btn-back" onclick="earnReset()"><i class="fas fa-arrow-left"></i> Back to Tasks</button></div>`;
+    return;
+  }
+
+  // Step flow - ensure task exists
+  if (!e.task) {
+    c.innerHTML = '<p class="empty-msg">No task selected. Please go back and select a task.</p>';
     return;
   }
 
@@ -839,8 +856,10 @@ function renderEarn() {
 
   let body = '';
   if (sn === 1) {
+    const details = e.task.Details || 'Complete the task as described.';
+    const lines = details.split('\n').filter(l => l.trim());
     body = `<div class="st-title">Read the instructions carefully</div>
-      <div class="instr-box">${(e.task.Details||'').split('\n').map(l=>`<div class="instr-line">${esc(l)}</div>`).join('')}</div>
+      <div class="instr-box">${lines.map(l=>`<div class="instr-line">${esc(l)}</div>`).join('')}</div>
       <button class="btn-out" onclick="earnGo('step2')">I've read the instructions <i class="fas fa-chevron-right"></i></button>`;
   } else if (sn === 2) {
     body = `<div class="st-title">Paste the confirmation link</div>
@@ -848,15 +867,19 @@ function renderEarn() {
       <input class="step-inp" type="url" id="step-inp" placeholder="https://example.com/page" value="${esc(e.link)}" oninput="S.earn.link=this.value;document.getElementById('step-next').disabled=!this.value.trim()">
       <button class="btn-out" id="step-next" onclick="earnGo('step3')" ${!e.link.trim()?'disabled':''}>Next <i class="fas fa-chevron-right"></i></button>`;
   } else {
+    const hint = e.task.Detail2 || 'Enter the confirmation code from the task.';
     body = `<div class="st-title">Final verification</div>
-      <div class="hint-box"><p class="hint-txt">${esc(e.task.Detail2||'Enter the confirmation code from the task.')}</p></div>
+      <div class="hint-box"><p class="hint-txt">${esc(hint)}</p></div>
       <input class="step-inp" id="step-inp" placeholder="Enter your answer" value="${esc(e.final)}" oninput="S.earn.final=this.value;document.getElementById('step-submit').disabled=!this.value.trim()">
       <button class="btn-gold" id="step-submit" onclick="earnSubmit()" ${!e.final.trim()?'disabled':''}>Submit Task</button>`;
   }
 
+  const taskId = e.task['task#'] || 'Unknown';
+  const reward = e.task.Reward || '0';
+
   c.innerHTML = `<div class="step-ind">${ind}</div>
     <div class="step-card">
-      <div class="sc-hdr"><span class="sc-tid">${esc(e.task['task#'])}</span><span class="sc-rwd">· +${esc(e.task.Reward)} PTS reward</span></div>
+      <div class="sc-hdr"><span class="sc-tid">${esc(taskId)}</span><span class="sc-rwd">· +${esc(reward)} PTS reward</span></div>
       ${body}
     </div>`;
 }
@@ -915,8 +938,6 @@ async function earnSubmit() {
       ]);
       
       if (result && result.success) {
-        // ✅ FIX: Use the values from the server response
-        // The server should ADD the reward to on-hold balance
         const newOnHold = parseFloat(result.newOnHold || 0);
         const newPts = parseFloat(result.newPts || S.user.pts || 0);
         
@@ -955,7 +976,7 @@ async function earnSubmit() {
 function renderRedeem() {
   if (!S.user) return;
   const userPts = parseFloat(S.user.pts) || 0;
-  if (!S.rewards.length) { 
+  if (!S.rewards || !S.rewards.length) { 
     $('rew-grid').innerHTML = '<p class="empty-msg">No rewards available yet.</p>'; 
     return; 
   }
