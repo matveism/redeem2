@@ -1095,7 +1095,14 @@ async function earnSubmit() {
       ]);
       
       if (result && result.success) {
-        updateUserLocal({ onhold: parseFloat(result.newOnHold).toFixed(2) });
+        // Update on hold and main balance correctly
+        const newOnHold = parseFloat(result.newOnHold || 0);
+        const newPts = parseFloat(result.newPts || S.user.pts || 0);
+        updateUserLocal({ 
+          onhold: fmt(newOnHold),
+          pts: fmt(newPts)
+        });
+        
         S.tasks = S.tasks.filter(t => t['task#'] !== e.task['task#']);
         
         // Track completed tasks for signup fee
