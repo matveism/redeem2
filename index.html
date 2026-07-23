@@ -22,6 +22,7 @@
     .login-btn:hover{opacity:.88}
     .login-btn:disabled{opacity:.6;cursor:not-allowed}
     .err-box{display:flex;align-items:center;gap:8px;background:#2a1212;border:1px solid #5a2020;border-radius:8px;padding:10px 14px;margin-bottom:16px;color:var(--red);font-size:13px}
+    .err-box.hidden{display:none}
 
     /* DASHBOARD */
     #dashboard{display:none;flex-direction:column;min-height:100vh}
@@ -89,6 +90,7 @@
     .t-meta{color:var(--muted);font-size:12px}
     .start-btn{background:var(--gold);color:#000;border:none;border-radius:8px;padding:10px 20px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:opacity .15s}
     .start-btn:hover{opacity:.85}
+    .start-btn:disabled{opacity:.5;cursor:not-allowed}
     .empty-msg{color:#555;font-size:14px;padding-left:21px}
 
     /* STEP FLOW */
@@ -149,7 +151,7 @@
     .sb-off{background:#1f0d0d;color:var(--red)}
     .you-star{color:var(--gold);font-weight:600}
 
-    /* REWARD CARDS */
+    /* REWARD CARDS - UPDATED */
     .rew-grid{padding-left:21px;display:flex;flex-wrap:wrap;gap:14px}
     .rew-wrap{flex:1 1 220px;max-width:340px}
     .rew-hdr{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;transition:border-color .15s}
@@ -160,17 +162,27 @@
     .rew-name{font-weight:600;font-size:15px;color:var(--text);margin-bottom:3px}
     .rew-cost-ok{color:var(--green);font-size:13px;font-weight:700}
     .rew-cost-no{color:#f06060;font-size:13px;font-weight:700}
-    .rew-panel{background:#161616;border:1px solid var(--gold);border-top:none;border-radius:0 0 12px 12px;padding:20px 22px}
-    .rew-panel-lock{background:#161616;border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;padding:20px 22px;display:flex;align-items:center;gap:14px}
+    
+    /* Reward Panel - Confirm State */
+    .rew-panel-confirm{background:#161616;border:1px solid var(--gold);border-top:none;border-radius:0 0 12px 12px;padding:20px 22px}
+    .rew-panel-lock{background:#161616;border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+    .rew-panel-revealed{background:#0d1f0d;border:1px solid var(--green);border-top:none;border-radius:0 0 12px 12px;padding:20px 22px}
     .lock-circle{width:42px;height:42px;border-radius:50%;background:#2a1212;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px}
     .lock-msg{color:#f06060;font-weight:700;font-size:14px;margin-bottom:4px}
     .lock-sub{color:var(--muted);font-size:13px}
     .lock-sub strong{color:var(--gold)}
+    .confirm-btn{background:var(--gold);color:#000;border:none;border-radius:8px;padding:10px 22px;font-weight:700;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s;width:100%;justify-content:center}
+    .confirm-btn:hover{opacity:.88}
+    .confirm-btn:disabled{opacity:.5;cursor:not-allowed}
+    .confirm-cost{color:var(--gold);font-weight:700;font-size:15px}
+    .confirm-warning{color:var(--muted);font-size:12px;margin-top:6px}
     .rew-info-lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
     .rew-code{display:inline-block;background:#111;color:var(--green);padding:8px 16px;border-radius:8px;font-size:17px;font-weight:700;font-family:monospace;letter-spacing:.08em;border:1px solid var(--border)}
     .rew-bal-lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
     .rew-bal-val{color:var(--green);font-weight:700;font-size:20px}
     .rew-pair{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px}
+    .rew-status-ok{color:var(--green);font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px}
+    .rew-status-ok i{color:var(--green)}
 
     /* MODAL */
     .overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:2000;padding:20px;backdrop-filter:blur(4px)}
@@ -260,7 +272,7 @@
 <div id="login-screen">
   <div class="login-logo"><span>ⓡ</span>eedem<span style="color:orange">2</span></div>
   <div class="login-card">
-    <div class="err-box" id="login-err" style="display:none">
+    <div class="err-box hidden" id="login-err">
       <i class="fas fa-exclamation-circle"></i>
       <span id="login-err-msg"></span>
     </div>
@@ -338,7 +350,7 @@
     <!-- REDEEM -->
     <div id="tab-redeem" class="tab-sec">
       <h2 class="sec-title"><i class="fas fa-gift"></i> Redeem</h2>
-      <p class="sec-desc">Click a reward to reveal it.</p>
+      <p class="sec-desc">Click a reward to reveal it. You must confirm to redeem.</p>
       <div class="rew-grid" id="rew-grid"></div>
     </div>
 
@@ -448,10 +460,8 @@ const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMX3Sg8TPBeQrBA
 function api(action, params = {}) {
   return new Promise((resolve, reject) => {
     try {
-      // Generate a unique callback name
       const callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
       
-      // Build URL with query parameters
       const url = new URL(APP_SCRIPT_URL);
       url.searchParams.append('action', action);
       url.searchParams.append('callback', callbackName);
@@ -462,18 +472,15 @@ function api(action, params = {}) {
         }
       }
       
-      // Create script element for JSONP
       const script = document.createElement('script');
       script.src = url.toString();
       script.async = true;
       
-      // Set up timeout
       const timeout = setTimeout(() => {
         cleanup();
         reject(new Error('Request timeout'));
       }, 15000);
       
-      // Define the callback function globally
       window[callbackName] = function(data) {
         cleanup();
         resolve(data);
@@ -487,13 +494,11 @@ function api(action, params = {}) {
         }
       }
       
-      // Error handling
       script.onerror = function() {
         cleanup();
         reject(new Error('Network error - check CORS and deployment settings'));
       };
       
-      // Append to document
       document.head.appendChild(script);
       
     } catch (err) {
@@ -564,8 +569,12 @@ async function doLogin() {
   }
 }
 
-function showLoginErr(msg) { $('login-err').style.display = 'flex'; $('login-err-msg').textContent = msg; }
-function hideLoginErr()    { $('login-err').style.display = 'none'; }
+function showLoginErr(msg) { 
+  const err = $('login-err');
+  err.classList.remove('hidden');
+  $('login-err-msg').textContent = msg; 
+}
+function hideLoginErr()    { $('login-err').classList.add('hidden'); }
 
 async function testConnection() {
   const btn = $('test-btn');
@@ -651,7 +660,8 @@ async function loadAllData() {
 function switchTab(id) {
   document.querySelectorAll('.tab-sec').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-  $('tab-' + id).classList.add('active');
+  const tab = $('tab-' + id);
+  if (tab) tab.classList.add('active');
   const btn = document.querySelector('.nav-tab[data-tab="' + id + '"]');
   if (btn) btn.classList.add('active');
   $('user-dd').classList.remove('open');
@@ -735,7 +745,7 @@ function renderEarn() {
       <button class="btn-out" id="step-next" onclick="earnGo('step3')" ${!e.link.trim()?'disabled':''}>Next <i class="fas fa-chevron-right"></i></button>`;
   } else {
     body = `<div class="st-title">Final verification</div>
-      <div class="hint-box"><p class="hint-txt">${esc(e.task.Detail2||'')}</p></div>
+      <div class="hint-box"><p class="hint-txt">${esc(e.task.Detail2||'Enter the confirmation code from the task.')}</p></div>
       <input class="step-inp" id="step-inp" placeholder="Enter your answer" value="${esc(e.final)}" oninput="S.earn.final=this.value;$('step-submit').disabled=!this.value.trim()">
       <button class="btn-gold" id="step-submit" onclick="earnSubmit()" ${!e.final.trim()?'disabled':''}>Submit Task</button>`;
   }
@@ -748,16 +758,51 @@ function renderEarn() {
 }
 
 function earnStart(id) {
-  const t = S.tasks.find(x => x['task#'] === id);
-  if (!t) return;
-  S.earn = { step:'step1', task:t, link:'', final:'', matched:false };
+  // Find the task with proper matching
+  const t = S.tasks.find(x => String(x['task#']).trim() === String(id).trim());
+  if (!t) {
+    showToast('Task not found: ' + id);
+    return;
+  }
+  
+  // Ensure task has all required fields
+  if (!t.Reward) t.Reward = '0';
+  if (!t.Details) t.Details = 'Complete the task as described.';
+  if (!t.Detail2) t.Detail2 = 'Enter the confirmation code from the task.';
+  if (!t.LinkConfirm) t.LinkConfirm = '';
+  if (!t.FinalConfirm) t.FinalConfirm = '';
+  
+  S.earn = { 
+    step: 'step1', 
+    task: t, 
+    link: '', 
+    final: '', 
+    matched: false 
+  };
   renderEarn();
 }
-function earnGo(step) { S.earn.step = step; renderEarn(); }
-function earnReset()  { S.earn = { step:'list', task:null, link:'', final:'', matched:false }; renderEarn(); renderHome(); }
+
+function earnGo(step) { 
+  if (step === 'step2') {
+    const inp = $('step-inp');
+    if (inp) S.earn.link = inp.value.trim();
+  }
+  S.earn.step = step; 
+  renderEarn(); 
+}
+
+function earnReset()  { 
+  S.earn = { step:'list', task:null, link:'', final:'', matched:false }; 
+  renderEarn(); 
+  renderHome(); 
+}
 
 async function earnSubmit() {
   const e = S.earn;
+  // Get final input value
+  const inp = $('step-inp');
+  if (inp) e.final = inp.value.trim();
+  
   e.step = 'loading';
   renderEarn();
 
@@ -774,6 +819,7 @@ async function earnSubmit() {
       updateUserLocal({ onhold: parseFloat(result.newOnHold).toFixed(2) });
       S.tasks = S.tasks.filter(t => t['task#'] !== e.task['task#']);
       beginHoldTimer();
+      renderHome();
     }
   }
 
@@ -786,34 +832,77 @@ async function earnSubmit() {
 function renderRedeem() {
   if (!S.user) return;
   const userPts = parseFloat(S.user.pts) || 0;
-  if (!S.rewards.length) { $('rew-grid').innerHTML = '<p class="empty-msg">No rewards available yet.</p>'; return; }
+  if (!S.rewards.length) { 
+    $('rew-grid').innerHTML = '<p class="empty-msg">No rewards available yet.</p>'; 
+    return; 
+  }
 
   $('rew-grid').innerHTML = S.rewards.map(r => {
     const cost = parseFloat(r.cost) || 0;
-    const can  = userPts >= cost;
+    const canAfford = userPts >= cost;
     const open = S.expandedReward === r.reward_name;
     const safeName = (r.reward_name||'').replace(/'/g, "\\'");
+    const revealed = r._revealed || false;
 
     let panel = '';
     if (open) {
-      panel = can
-        ? `<div class="rew-panel"><div class="rew-pair">
-            <div><div class="rew-info-lbl">Reward Info</div><span class="rew-code">${esc(r.info)}</span></div>
-            <div><div class="rew-bal-lbl">Your Balance</div><div class="rew-bal-val">${fmt(S.user.pts)} PTS</div></div>
-           </div></div>`
-        : `<div class="rew-panel-lock">
-            <div class="lock-circle">🔒</div>
-            <div><div class="lock-msg">Insufficient Funds</div>
-            <p class="lock-sub">You need <strong>${fmt(cost - userPts)} more PTS</strong> to unlock this reward.</p></div>
-           </div>`;
+      if (!revealed) {
+        // Show confirm state - user must confirm to see reward info
+        panel = `<div class="rew-panel-confirm">
+          <div style="display:flex;flex-direction:column;gap:12px;align-items:center;">
+            <div style="text-align:center;width:100%;">
+              <div style="color:var(--gold);font-size:20px;font-weight:700;margin-bottom:4px;">⚠️ Confirm Redemption</div>
+              <div style="color:var(--muted);font-size:14px;margin-bottom:8px;">This will deduct <span class="confirm-cost">${esc(r.cost)} PTS</span> from your balance</div>
+              <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:8px 0;">
+                <span style="color:var(--muted);font-size:13px;">Your balance: <strong style="color:var(--green);">${fmt(userPts)} PTS</strong></span>
+                ${!canAfford ? `<span style="color:var(--red);font-size:13px;font-weight:700;">⚠️ Insufficient funds</span>` : ''}
+              </div>
+            </div>
+            <button class="confirm-btn" onclick="confirmReward('${safeName}')" ${!canAfford ? 'disabled' : ''}>
+              <i class="fas fa-check-circle"></i> Confirm & Redeem (${esc(r.cost)} PTS)
+            </button>
+            ${canAfford ? `<div class="confirm-warning">⚠️ This action is final and cannot be undone</div>` : 
+                          `<div class="confirm-warning" style="color:var(--red);">You need ${fmt(cost - userPts)} more PTS</div>`}
+          </div>
+        </div>`;
+      } else {
+        // Show revealed reward info
+        panel = `<div class="rew-panel-revealed">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;color:var(--green);">
+            <i class="fas fa-check-circle"></i>
+            <span style="font-weight:700;">Redeemed Successfully!</span>
+          </div>
+          <div class="rew-pair">
+            <div>
+              <div class="rew-info-lbl">Reward Info</div>
+              <span class="rew-code">${esc(r.info || 'Code: ' + r.reward_name)}</span>
+            </div>
+            <div>
+              <div class="rew-bal-lbl">Your Balance</div>
+              <div class="rew-bal-val">${fmt(S.user.pts)} PTS</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+              <span style="color:var(--muted);font-size:12px;">Redeemed at: ${new Date().toLocaleString()}</span>
+              <span class="rew-status-ok"><i class="fas fa-check-circle"></i> Completed</span>
+            </div>
+          </div>
+        </div>`;
+      }
     }
+
+    const iconClass = revealed ? 'fas fa-check-circle' : 'fas fa-gift';
+    const iconColor = revealed ? 'var(--green)' : 'var(--gold)';
 
     return `<div class="rew-wrap">
       <div class="rew-hdr${open?' open':''}" onclick="toggleReward('${safeName}')">
         <div style="display:flex;align-items:center;gap:14px">
-          <div class="rew-icon"><i class="fas fa-gift"></i></div>
-          <div><div class="rew-name">${esc(r.reward_name)}</div>
-               <div class="${can?'rew-cost-ok':'rew-cost-no'}">${esc(r.cost)} PTS</div></div>
+          <div class="rew-icon"><i class="${iconClass}" style="color:${iconColor};"></i></div>
+          <div>
+            <div class="rew-name">${esc(r.reward_name)} ${revealed ? '✅' : ''}</div>
+            <div class="${canAfford && !revealed ? 'rew-cost-ok' : 'rew-cost-no'}">${esc(r.cost)} PTS</div>
+          </div>
         </div>
         <i class="fas fa-chevron-${open?'up':'down'}" style="color:var(--muted)"></i>
       </div>${panel}
@@ -822,8 +911,56 @@ function renderRedeem() {
 }
 
 function toggleReward(name) {
-  S.expandedReward = S.expandedReward === name ? null : name;
+  if (S.expandedReward === name) {
+    S.expandedReward = null;
+  } else {
+    // Reset any previously selected reward's revealed state
+    S.rewards.forEach(r => {
+      if (r.reward_name !== name) r._revealed = false;
+    });
+    S.expandedReward = name;
+  }
   renderRedeem();
+}
+
+async function confirmReward(name) {
+  const reward = S.rewards.find(r => r.reward_name === name);
+  if (!reward) {
+    showToast('Reward not found.');
+    return;
+  }
+
+  const cost = parseFloat(reward.cost) || 0;
+  const userPts = parseFloat(S.user.pts) || 0;
+
+  if (userPts < cost) {
+    showToast('Insufficient funds to redeem this reward.');
+    return;
+  }
+
+  // Deduct points via API
+  try {
+    const result = await api('redeemReward', {
+      userid: S.user.userid,
+      rewardName: reward.reward_name,
+      cost: cost
+    });
+
+    if (result.success) {
+      // Update user balance
+      updateUserLocal({ pts: parseFloat(result.newPts).toFixed(2) });
+      // Mark reward as revealed
+      reward._revealed = true;
+      // Refresh display
+      renderRedeem();
+      renderHome();
+      showToast('✅ Reward redeemed successfully!');
+    } else {
+      showToast('Failed to redeem: ' + (result.error || 'Unknown error'));
+    }
+  } catch (err) {
+    showToast('Error redeeming reward: ' + err.message);
+  }
 }
 
 // ── LEADERBOARD ──────────────────────────────────────────────
