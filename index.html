@@ -37,6 +37,21 @@
     .countdown{color:var(--muted);font-size:11px;margin-left:5px}
     .pts-main{font-weight:700;font-size:16px}
     .pts-main small{color:var(--muted);font-weight:400;font-size:11px}
+    .pts-main.negative{color:var(--red)}
+
+    /* PROMO BAR - NEW USER */
+    .promo-bar{background:linear-gradient(135deg,#1a0a0a,#2a1a0a);border:1px solid var(--gold);border-radius:8px;padding:12px 20px;margin:0 0 16px 21px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;animation:glowPulse 2s ease-in-out infinite}
+    @keyframes glowPulse{0%,100%{border-color:var(--gold);box-shadow:0 0 10px rgba(212,160,23,0.1)}50%{border-color:#ffd700;box-shadow:0 0 25px rgba(212,160,23,0.3)}}
+    .promo-bar .promo-icon{font-size:28px;color:var(--gold);flex-shrink:0}
+    .promo-bar .promo-text{flex:1;color:#eee;font-size:14px;line-height:1.5}
+    .promo-bar .promo-text strong{color:var(--gold)}
+    .promo-bar .promo-text .highlight{color:#ff6b6b;font-weight:700}
+    .promo-bar .promo-progress{display:flex;align-items:center;gap:12px;flex-shrink:0}
+    .promo-bar .progress-track{width:120px;height:6px;background:#333;border-radius:4px;overflow:hidden}
+    .promo-bar .progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),#ffd700);border-radius:4px;transition:width .5s ease}
+    .promo-bar .progress-label{color:var(--gold);font-weight:700;font-size:13px;min-width:60px;text-align:right}
+    .promo-bar .promo-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px;transition:color .15s}
+    .promo-bar .promo-close:hover{color:var(--text)}
 
     /* NAV */
     .nav{background:linear-gradient(180deg,var(--nav1),var(--nav2));display:flex;align-items:center;justify-content:space-between;padding:0 16px;min-height:56px;border-bottom:1px solid #000;flex-wrap:wrap;gap:4px 12px;flex-shrink:0}
@@ -70,6 +85,7 @@
     .s-lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
     .s-val{font-size:20px;font-weight:700;color:var(--green)}
     .s-val.gold{color:var(--gold)}
+    .s-val.negative{color:var(--red)}
     .s-note{color:var(--muted);font-size:11px;margin-top:3px}
 
     /* MINI CARDS */
@@ -261,6 +277,8 @@
       .step-ind{padding-left:0}
       .stat-grid,.mini-grid{padding-left:0}
       .rew-grid{padding-left:0}
+      .promo-bar{padding:10px 14px;margin:0 0 12px 0}
+      .promo-bar .progress-track{width:80px}
     }
   </style>
 </head>
@@ -298,8 +316,24 @@
         <span class="onhold-lbl"> PTS</span>
         <span class="countdown" id="tb-countdown" style="display:none"></span>
       </span>
-      <span class="pts-main"><span id="tb-pts">0.00</span> <small>PTS</small></span>
+      <span class="pts-main" id="tb-pts-wrap"><span id="tb-pts">0.00</span> <small>PTS</small></span>
     </div>
+  </div>
+
+  <!-- PROMO BAR - New User Signup Fee -->
+  <div id="promo-bar" class="promo-bar" style="display:none;">
+    <div class="promo-icon">🎯</div>
+    <div class="promo-text">
+      <strong>Welcome to Redeem2!</strong> You have a <span class="highlight">-5 PTS</span> signup fee. 
+      Complete <strong id="tasks-needed">5</strong> more tasks to clear your balance and start earning!
+    </div>
+    <div class="promo-progress">
+      <div class="progress-track">
+        <div class="progress-fill" id="promo-progress-fill" style="width:0%"></div>
+      </div>
+      <span class="progress-label" id="promo-progress-label">0/5</span>
+    </div>
+    <button class="promo-close" onclick="closePromoBar()" title="Dismiss"><i class="fas fa-times"></i></button>
   </div>
 
   <nav class="nav">
@@ -527,13 +561,24 @@ let S = {
   chatPoll: null,
   holdTimer: null,
   holdExpiry: null,
+  tasksCompleted: 0,
+  signupFeeCleared: false
 };
 
 // ── UTILS ────────────────────────────────────────────────────
 const $   = id => document.getElementById(id);
-const esc = s  => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const fmt = n  => parseFloat(n || 0).toFixed(2);
-const norm = s => s.trim().toLowerCase().replace(/\/+$/, '').replace(/\s+/g, ' ');
+const esc = s  => {
+  if (s === undefined || s === null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+};
+const fmt = n  => {
+  if (n === undefined || n === null) return '0.00';
+  return parseFloat(n || 0).toFixed(2);
+};
+const norm = s => {
+  if (s === undefined || s === null) return '';
+  return String(s).trim().toLowerCase().replace(/\/+$/, '').replace(/\s+/g, ' ');
+};
 
 // ── AUTH ─────────────────────────────────────────────────────
 async function doLogin() {
@@ -612,12 +657,14 @@ async function doLogout() {
   localStorage.removeItem('r2_userid');
   S = { user:null, tasks:[], promos:[], rewards:[], users:[], isBanned:false,
         earn:{step:'list',task:null,link:'',final:'',matched:false},
-        expandedReward:null, chatOpen:false, chatPoll:null, holdTimer:null, holdExpiry:null };
+        expandedReward:null, chatOpen:false, chatPoll:null, holdTimer:null, holdExpiry:null,
+        tasksCompleted:0, signupFeeCleared:false };
   $('dashboard').classList.remove('show');
   $('login-screen').style.display = 'flex';
   $('user-dd').classList.remove('open');
   $('chat-fab').classList.remove('show');
   $('chat-panel').classList.remove('open');
+  $('promo-bar').style.display = 'none';
   switchTab('home');
 }
 
@@ -634,6 +681,18 @@ function enterDashboard() {
   const exp = parseInt(localStorage.getItem('r2_hold_expiry_' + S.user.userid) || '0');
   if (exp > Date.now()) { S.holdExpiry = exp; startCountdown(); }
   else if (exp > 0)     { localStorage.removeItem('r2_hold_expiry_' + S.user.userid); releaseHold(); }
+  
+  // Load tasks completed from localStorage
+  const savedTasks = localStorage.getItem('r2_tasks_completed_' + S.user.userid);
+  S.tasksCompleted = savedTasks ? parseInt(savedTasks) : 0;
+  const savedCleared = localStorage.getItem('r2_signup_cleared_' + S.user.userid);
+  S.signupFeeCleared = savedCleared === 'true';
+  
+  // Check if user is new (has -5 PTS or has never completed tasks)
+  const pts = parseFloat(S.user.pts) || 0;
+  if (pts < 0 && !S.signupFeeCleared) {
+    showPromoBar();
+  }
 }
 
 async function loadAllData() {
@@ -649,9 +708,60 @@ async function loadAllData() {
     renderEarn();
     renderRedeem();
     renderLeaderboard();
+    updatePromoBar();
   } catch (err) {
     showToast('Error loading data: ' + err.message);
   }
+}
+
+// ── PROMO BAR ────────────────────────────────────────────────
+function showPromoBar() {
+  const bar = $('promo-bar');
+  bar.style.display = 'flex';
+  updatePromoBar();
+}
+
+function updatePromoBar() {
+  const pts = parseFloat(S.user ? S.user.pts : 0) || 0;
+  const tasksNeeded = Math.max(0, Math.ceil(Math.abs(pts) / 1)); // Each task gives 1 PTS towards clearing debt
+  const completed = S.tasksCompleted || 0;
+  const progress = Math.min(100, (completed / 5) * 100);
+  
+  $('promo-progress-fill').style.width = progress + '%';
+  $('promo-progress-label').textContent = completed + '/5';
+  $('tasks-needed').textContent = Math.max(0, 5 - completed);
+  
+  // Check if cleared
+  if (completed >= 5 && !S.signupFeeCleared) {
+    clearSignupFee();
+  }
+}
+
+async function clearSignupFee() {
+  S.signupFeeCleared = true;
+  localStorage.setItem('r2_signup_cleared_' + S.user.userid, 'true');
+  
+  // Update user balance to 0 if it was negative
+  const pts = parseFloat(S.user.pts) || 0;
+  if (pts < 0) {
+    try {
+      const result = await api('clearSignupFee', { userid: S.user.userid });
+      if (result.success) {
+        updateUserLocal({ pts: '0.00' });
+        showToast('🎉 Congratulations! Your signup fee has been cleared!');
+      }
+    } catch (err) {
+      // Silent fail
+    }
+  }
+  
+  $('promo-bar').style.display = 'none';
+  renderHome();
+  updateHeader();
+}
+
+function closePromoBar() {
+  $('promo-bar').style.display = 'none';
 }
 
 // ── NAV ──────────────────────────────────────────────────────
@@ -668,7 +778,9 @@ function switchTab(id) {
 // ── HEADER ───────────────────────────────────────────────────
 function updateHeader() {
   if (!S.user) return;
-  $('tb-pts').textContent    = fmt(S.user.pts);
+  const pts = parseFloat(S.user.pts) || 0;
+  $('tb-pts').textContent = fmt(pts);
+  $('tb-pts-wrap').className = 'pts-main' + (pts < 0 ? ' negative' : '');
   $('tb-onhold').textContent = fmt(S.user.onhold);
 }
 
@@ -683,8 +795,11 @@ function updateUserLocal(updates) {
 function renderHome() {
   const u = S.user;
   if (!u) return;
+  const pts = parseFloat(u.pts) || 0;
+  const isNegative = pts < 0;
+  
   $('home-stats').innerHTML =
-    sc('Your PTS',    fmt(u.pts),    'green') +
+    sc('Your PTS',    fmt(pts),    isNegative ? 'negative' : 'green') +
     sc('On Hold',     fmt(u.onhold), 'gold', S.holdExpiry ? '<div class="s-note" id="home-cd"></div>' : '') +
     sc('Members',     S.users.length)  +
     sc('Tasks',       S.tasks.length)  +
@@ -702,7 +817,7 @@ function renderEarn() {
 
   if (e.step === 'list') {
     if (!S.tasks.length) { c.innerHTML = '<p class="empty-msg">No tasks available right now.</p>'; return; }
-    c.innerHTML = S.tasks.map(t =>
+    c.innerHTML = S.tasks.map((t, index) =>
       `<div class="task-card">
         <div>
           <div><span class="t-id">${esc(t['task#'])}</span><span class="t-badge">+${esc(t.Reward)} PTS</span></div>
@@ -756,14 +871,12 @@ function renderEarn() {
 }
 
 function earnStart(id) {
-  // Find the task with proper matching
   const t = S.tasks.find(x => String(x['task#']).trim() === String(id).trim());
   if (!t) {
     showToast('Task not found: ' + id);
     return;
   }
   
-  // Ensure task has all required fields
   if (!t.Reward) t.Reward = '0';
   if (!t.Details) t.Details = 'Complete the task as described.';
   if (!t.Detail2) t.Detail2 = 'Enter the confirmation code from the task.';
@@ -798,26 +911,22 @@ function earnReset()  {
 async function earnSubmit() {
   const e = S.earn;
   
-  // Get final input value
   const inp = document.getElementById('step-inp');
   if (inp) e.final = inp.value.trim();
   
-  // Show loading state
   e.step = 'loading';
   renderEarn();
 
   try {
-    // Add a timeout to prevent infinite loading
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Verification timed out. Please try again.')), 10000);
     });
 
-    // Check if the task matches
-    const matched = norm(e.link) === norm(e.task.LinkConfirm || '')
-                 && norm(e.final) === norm(e.task.FinalConfirm || '');
+    const linkMatch = norm(e.link) === norm(e.task.LinkConfirm || '');
+    const finalMatch = norm(e.final) === norm(e.task.FinalConfirm || '');
+    const matched = linkMatch && finalMatch;
 
     if (matched) {
-      // Call API with timeout
       const result = await Promise.race([
         api('completeTask', {
           taskId: e.task['task#'],
@@ -830,8 +939,14 @@ async function earnSubmit() {
       if (result && result.success) {
         updateUserLocal({ onhold: parseFloat(result.newOnHold).toFixed(2) });
         S.tasks = S.tasks.filter(t => t['task#'] !== e.task['task#']);
+        
+        // Track completed tasks for signup fee
+        S.tasksCompleted = (S.tasksCompleted || 0) + 1;
+        localStorage.setItem('r2_tasks_completed_' + S.user.userid, S.tasksCompleted);
+        
         beginHoldTimer();
         renderHome();
+        updatePromoBar();
         e.matched = true;
       } else {
         e.matched = false;
@@ -841,16 +956,20 @@ async function earnSubmit() {
       }
     } else {
       e.matched = false;
+      if (!linkMatch && !finalMatch) {
+        showToast('Both the link and confirmation code are incorrect. Please check and try again.');
+      } else if (!linkMatch) {
+        showToast('The confirmation link does not match. Please check and try again.');
+      } else if (!finalMatch) {
+        showToast('The confirmation code does not match. Please check and try again.');
+      }
     }
 
-    // Show result
     e.step = 'result';
     renderEarn();
     
   } catch (err) {
-    // Handle errors
     showToast('Error: ' + err.message);
-    // Go back to step 3 so user can try again
     e.step = 'step3';
     renderEarn();
   }
@@ -867,7 +986,7 @@ function renderRedeem() {
 
   $('rew-grid').innerHTML = S.rewards.map(r => {
     const cost = parseFloat(r.cost) || 0;
-    const canAfford = userPts >= cost;
+    const canAfford = userPts >= cost && userPts >= 0; // Can't redeem with negative balance
     const open = S.expandedReward === r.reward_name;
     const safeName = (r.reward_name||'').replace(/'/g, "\\'");
     const revealed = r._revealed || false;
@@ -875,26 +994,24 @@ function renderRedeem() {
     let panel = '';
     if (open) {
       if (!revealed) {
-        // Show confirm state - user must confirm to see reward info
         panel = `<div class="rew-panel-confirm">
           <div style="display:flex;flex-direction:column;gap:12px;align-items:center;">
             <div style="text-align:center;width:100%;">
               <div style="color:var(--gold);font-size:20px;font-weight:700;margin-bottom:4px;">⚠️ Confirm Redemption</div>
               <div style="color:var(--muted);font-size:14px;margin-bottom:8px;">This will deduct <span class="confirm-cost">${esc(r.cost)} PTS</span> from your balance</div>
               <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:8px 0;">
-                <span style="color:var(--muted);font-size:13px;">Your balance: <strong style="color:var(--green);">${fmt(userPts)} PTS</strong></span>
-                ${!canAfford ? `<span style="color:var(--red);font-size:13px;font-weight:700;">⚠️ Insufficient funds</span>` : ''}
+                <span style="color:var(--muted);font-size:13px;">Your balance: <strong style="color:${userPts < 0 ? 'var(--red)' : 'var(--green)'};">${fmt(userPts)} PTS</strong></span>
+                ${!canAfford ? `<span style="color:var(--red);font-size:13px;font-weight:700;">${userPts < 0 ? '⚠️ Negative balance - complete tasks first' : '⚠️ Insufficient funds'}</span>` : ''}
               </div>
             </div>
             <button class="confirm-btn" onclick="confirmReward('${safeName}')" ${!canAfford ? 'disabled' : ''}>
               <i class="fas fa-check-circle"></i> Confirm & Redeem (${esc(r.cost)} PTS)
             </button>
             ${canAfford ? `<div class="confirm-warning">⚠️ This action is final and cannot be undone</div>` : 
-                          `<div class="confirm-warning" style="color:var(--red);">You need ${fmt(cost - userPts)} more PTS</div>`}
+                          `<div class="confirm-warning" style="color:var(--red);">${userPts < 0 ? 'Clear your negative balance first by completing tasks' : 'You need ' + fmt(cost - userPts) + ' more PTS'}</div>`}
           </div>
         </div>`;
       } else {
-        // Show revealed reward info
         panel = `<div class="rew-panel-revealed">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;color:var(--green);">
             <i class="fas fa-check-circle"></i>
@@ -942,7 +1059,6 @@ function toggleReward(name) {
   if (S.expandedReward === name) {
     S.expandedReward = null;
   } else {
-    // Reset any previously selected reward's revealed state
     S.rewards.forEach(r => {
       if (r.reward_name !== name) r._revealed = false;
     });
@@ -961,12 +1077,11 @@ async function confirmReward(name) {
   const cost = parseFloat(reward.cost) || 0;
   const userPts = parseFloat(S.user.pts) || 0;
 
-  if (userPts < cost) {
-    showToast('Insufficient funds to redeem this reward.');
+  if (userPts < cost || userPts < 0) {
+    showToast(userPts < 0 ? 'Cannot redeem with negative balance. Complete tasks first.' : 'Insufficient funds to redeem this reward.');
     return;
   }
 
-  // Deduct points via API
   try {
     const result = await api('redeemReward', {
       userid: S.user.userid,
@@ -975,11 +1090,8 @@ async function confirmReward(name) {
     });
 
     if (result.success) {
-      // Update user balance
       updateUserLocal({ pts: parseFloat(result.newPts).toFixed(2) });
-      // Mark reward as revealed
       reward._revealed = true;
-      // Refresh display
       renderRedeem();
       renderHome();
       showToast('✅ Reward redeemed successfully!');
@@ -1002,7 +1114,7 @@ function renderLeaderboard() {
       ${sorted.map((u,i) => `<tr>
         <td class="${['r1','r2','r3'][i]||'rn'}">#${i+1}</td>
         <td class="${u.userid===uid?'you-star':''}">${esc(u.userid)}${u.userid===uid?' ★':''}</td>
-        <td style="color:var(--green);font-weight:700">${esc(u.pts)}</td>
+        <td style="color:${parseFloat(u.pts||0) < 0 ? 'var(--red)' : 'var(--green)'};font-weight:700">${esc(u.pts)}</td>
         <td><span class="sb ${u.status==='active'?'sb-on':'sb-off'}">${esc(u.status)}</span></td>
         <td style="color:var(--muted)">${esc(u.CompletionRate)}</td>
       </tr>`).join('')}
@@ -1102,6 +1214,7 @@ async function releaseHold() {
       updateUserLocal({ pts: parseFloat(result.pts).toFixed(2), onhold: '0' });
       renderHome();
       renderRedeem();
+      updatePromoBar();
     }
   } catch (err) {
     // Silent fail - will retry on next interval
