@@ -39,20 +39,6 @@
     .pts-main small{color:var(--muted);font-weight:400;font-size:11px}
     .pts-main.negative{color:var(--red)}
 
-    /* PROMO BAR */
-    .promo-bar{background:linear-gradient(135deg,#1a0a0a,#2a1a0a);border:1px solid var(--gold);border-radius:8px;padding:12px 20px;margin:0 0 16px 21px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;animation:glowPulse 2s ease-in-out infinite}
-    @keyframes glowPulse{0%,100%{border-color:var(--gold);box-shadow:0 0 10px rgba(212,160,23,0.1)}50%{border-color:#ffd700;box-shadow:0 0 25px rgba(212,160,23,0.3)}}
-    .promo-bar .promo-icon{font-size:28px;color:var(--gold);flex-shrink:0}
-    .promo-bar .promo-text{flex:1;color:#eee;font-size:14px;line-height:1.5}
-    .promo-bar .promo-text strong{color:var(--gold)}
-    .promo-bar .promo-text .highlight{color:#ff6b6b;font-weight:700}
-    .promo-bar .promo-progress{display:flex;align-items:center;gap:12px;flex-shrink:0}
-    .promo-bar .progress-track{width:120px;height:6px;background:#333;border-radius:4px;overflow:hidden}
-    .promo-bar .progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),#ffd700);border-radius:4px;transition:width .5s ease}
-    .promo-bar .progress-label{color:var(--gold);font-weight:700;font-size:13px;min-width:60px;text-align:right}
-    .promo-bar .promo-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px;transition:color .15s}
-    .promo-bar .promo-close:hover{color:var(--text)}
-
     /* NAV */
     .nav{background:linear-gradient(180deg,var(--nav1),var(--nav2));display:flex;align-items:center;justify-content:space-between;padding:0 16px;min-height:56px;border-bottom:1px solid #000;flex-wrap:wrap;gap:4px 12px;flex-shrink:0}
     .nav-left{display:flex;align-items:center;flex-wrap:wrap}
@@ -289,8 +275,6 @@
       .step-ind{padding-left:0}
       .stat-grid,.mini-grid{padding-left:0}
       .rew-grid{padding-left:0}
-      .promo-bar{padding:10px 14px;margin:0 0 12px 0}
-      .promo-bar .progress-track{width:80px}
       .notif-permission-toast{width:calc(100% - 32px);bottom:80px;padding:12px 16px;font-size:13px}
     }
   </style>
@@ -331,22 +315,6 @@
       </span>
       <span class="pts-main" id="tb-pts-wrap"><span id="tb-pts">0.00</span> <small>PTS</small></span>
     </div>
-  </div>
-
-  <!-- PROMO BAR -->
-  <div id="promo-bar" class="promo-bar" style="display:none;">
-    <div class="promo-icon">🎯</div>
-    <div class="promo-text">
-      <strong>Welcome to Redeem2!</strong> You have a <span class="highlight">-5 PTS</span> signup fee. 
-      Complete <strong id="tasks-needed">5</strong> more tasks to clear your balance and start earning!
-    </div>
-    <div class="promo-progress">
-      <div class="progress-track">
-        <div class="progress-fill" id="promo-progress-fill" style="width:0%"></div>
-      </div>
-      <span class="progress-label" id="promo-progress-label">0/5</span>
-    </div>
-    <button class="promo-close" onclick="closePromoBar()" title="Dismiss"><i class="fas fa-times"></i></button>
   </div>
 
   <nav class="nav">
@@ -584,7 +552,7 @@ let S = {
   holdTimer: null,
   holdExpiry: null,
   tasksCompleted: 0,
-  signupFeeCleared: false,
+  signupFeeCleared: true, // always true, no signup fee
   lastMessageCount: 0,
   unreadCount: 0,
   notificationPermission: 'default'
@@ -629,7 +597,6 @@ async function requestNotificationPermission() {
     if (permission === 'granted') {
       showToast('🔔 Notifications enabled! You\'ll get alerts for new messages.');
       $('notif-permission-toast').classList.remove('show');
-      // Send a test notification
       setTimeout(() => {
         sendBrowserNotification('✅ Notifications Enabled', 'You will now receive alerts for new messages.');
       }, 500);
@@ -642,20 +609,9 @@ async function requestNotificationPermission() {
 }
 
 function sendBrowserNotification(title, body, tag) {
-  console.log('Attempting to send notification:', title, body);
-  
-  if (!checkNotificationSupport()) {
-    console.log('Notifications not supported');
-    return false;
-  }
-  
-  if (Notification.permission !== 'granted') {
-    console.log('Notification permission not granted. Current state:', Notification.permission);
-    return false;
-  }
-  
+  if (!checkNotificationSupport() || Notification.permission !== 'granted') return false;
   try {
-    const options = {
+    const notification = new Notification(title || 'Redeem2 Notification', {
       body: body || '',
       icon: '🔔',
       tag: tag || 'chat-notification-' + Date.now(),
@@ -663,54 +619,24 @@ function sendBrowserNotification(title, body, tag) {
       silent: false,
       renotify: true,
       vibrate: [200, 100, 200]
-    };
-    
-    console.log('Creating notification with options:', options);
-    const notification = new Notification(title || 'Redeem2 Notification', options);
-    
+    });
     notification.onclick = function(e) {
       e.preventDefault();
       window.focus();
-      if (!$('chat-panel').classList.contains('open')) {
-        toggleChat();
-      }
+      if (!$('chat-panel').classList.contains('open')) toggleChat();
       notification.close();
     };
-    
-    notification.onerror = function(e) {
-      console.error('Notification error:', e);
-    };
-    
-    // Auto-close after 8 seconds
-    setTimeout(() => {
-      try { notification.close(); } catch(e) {}
-    }, 8000);
-    
-    console.log('Notification sent successfully');
+    setTimeout(() => { try { notification.close(); } catch(e) {} }, 8000);
     return true;
-  } catch (err) {
-    console.error('Error sending notification:', err);
-    return false;
-  }
+  } catch (err) { return false; }
 }
 
 function checkAndRequestNotification() {
   const saved = localStorage.getItem('r2_notification_permission');
-  if (saved) {
-    S.notificationPermission = saved;
-  } else if (checkNotificationSupport()) {
-    S.notificationPermission = Notification.permission;
-  }
-  
-  console.log('Notification permission state:', S.notificationPermission);
-  
-  // Show permission toast if not granted or denied
-  if (checkNotificationSupport() && 
-      Notification.permission === 'default' && 
-      !localStorage.getItem('r2_notification_dismissed')) {
-    setTimeout(() => {
-      $('notif-permission-toast').classList.add('show');
-    }, 3000);
+  if (saved) S.notificationPermission = saved;
+  else if (checkNotificationSupport()) S.notificationPermission = Notification.permission;
+  if (checkNotificationSupport() && Notification.permission === 'default' && !localStorage.getItem('r2_notification_dismissed')) {
+    setTimeout(() => $('notif-permission-toast').classList.add('show'), 3000);
   }
 }
 
@@ -721,11 +647,7 @@ function dismissNotificationToast() {
 
 function updateChatNotificationDot(show) {
   const dot = $('chat-notif-dot');
-  if (show && S.unreadCount > 0) {
-    dot.classList.add('show');
-  } else {
-    dot.classList.remove('show');
-  }
+  show && S.unreadCount > 0 ? dot.classList.add('show') : dot.classList.remove('show');
 }
 
 // ── AUTH ─────────────────────────────────────────────────────
@@ -740,21 +662,16 @@ async function doLogin() {
 
   try {
     const result = await api('login', { userid: uid, password: pw });
-
     $('login-btn').disabled = false;
     $('login-btn-txt').textContent = 'Sign In';
-
     if (!result.success || !result.user) {
       showLoginErr(result.error || 'Login failed. Try again.');
       return;
     }
-
     S.user = { ...result.user };
     localStorage.setItem('r2_userid', S.user.userid);
     enterDashboard();
     await loadAllData();
-    
-    // Check notification permission
     setTimeout(checkAndRequestNotification, 1000);
   } catch (err) {
     $('login-btn').disabled = false;
@@ -768,19 +685,16 @@ function showLoginErr(msg) {
   err.classList.remove('hidden');
   $('login-err-msg').textContent = msg; 
 }
-function hideLoginErr()    { $('login-err').classList.add('hidden'); }
+function hideLoginErr() { $('login-err').classList.add('hidden'); }
 
 async function testConnection() {
-  const btn = $('test-btn');
-  const txt = $('test-btn-txt');
+  const btn = $('test-btn'), txt = $('test-btn-txt');
   btn.disabled = true;
   txt.textContent = 'Testing…';
   hideLoginErr();
-
   try {
     const result = await api('getUsers');
     btn.disabled = false;
-
     if (result && Array.isArray(result)) {
       txt.textContent = '✅ Connected!';
       btn.style.borderColor = '#6b8e23';
@@ -803,13 +717,13 @@ async function testConnection() {
 
 async function doLogout() {
   if (S.holdTimer) clearInterval(S.holdTimer);
-  if (S.chatPoll)  clearInterval(S.chatPoll);
+  if (S.chatPoll) clearInterval(S.chatPoll);
   if (S.user) localStorage.removeItem('r2_hold_expiry_' + S.user.userid);
   localStorage.removeItem('r2_userid');
   S = { user:null, tasks:[], promos:[], rewards:[], users:[], isBanned:false,
         earn:{step:'list',task:null,link:'',final:'',matched:false},
         expandedReward:null, chatOpen:false, chatPoll:null, holdTimer:null, holdExpiry:null,
-        tasksCompleted:0, signupFeeCleared:false, lastMessageCount:0, unreadCount:0,
+        tasksCompleted:0, signupFeeCleared:true, lastMessageCount:0, unreadCount:0,
         notificationPermission:'default' };
   $('dashboard').classList.remove('show');
   $('login-screen').style.display = 'flex';
@@ -832,25 +746,9 @@ function enterDashboard() {
   updateHeader();
   const exp = parseInt(localStorage.getItem('r2_hold_expiry_' + S.user.userid) || '0');
   if (exp > Date.now()) { S.holdExpiry = exp; startCountdown(); }
-  else if (exp > 0)     { localStorage.removeItem('r2_hold_expiry_' + S.user.userid); releaseHold(); }
-  
-  // Load tasks completed from localStorage
-  const savedTasks = localStorage.getItem('r2_tasks_completed_' + S.user.userid);
-  S.tasksCompleted = savedTasks ? parseInt(savedTasks) : 0;
-  const savedCleared = localStorage.getItem('r2_signup_cleared_' + S.user.userid);
-  S.signupFeeCleared = savedCleared === 'true';
-  
-  // Check if user is new (has -5 PTS or has never completed tasks)
-  const pts = parseFloat(S.user.pts) || 0;
-  if (pts < 0 && !S.signupFeeCleared) {
-    showPromoBar();
-  }
-  
-  // Load notification permission
+  else if (exp > 0) { localStorage.removeItem('r2_hold_expiry_' + S.user.userid); releaseHold(); }
   const savedPerm = localStorage.getItem('r2_notification_permission');
-  if (savedPerm) {
-    S.notificationPermission = savedPerm;
-  }
+  if (savedPerm) S.notificationPermission = savedPerm;
 }
 
 async function loadAllData() {
@@ -866,60 +764,9 @@ async function loadAllData() {
     renderEarn();
     renderRedeem();
     renderLeaderboard();
-    updatePromoBar();
   } catch (err) {
     showToast('Error loading data: ' + err.message);
   }
-}
-
-// ── PROMO BAR ────────────────────────────────────────────────
-function showPromoBar() {
-  const bar = $('promo-bar');
-  bar.style.display = 'flex';
-  updatePromoBar();
-}
-
-function updatePromoBar() {
-  const pts = parseFloat(S.user ? S.user.pts : 0) || 0;
-  const completed = S.tasksCompleted || 0;
-  const progress = Math.min(100, (completed / 5) * 100);
-  
-  $('promo-progress-fill').style.width = progress + '%';
-  $('promo-progress-label').textContent = completed + '/5';
-  $('tasks-needed').textContent = Math.max(0, 5 - completed);
-  
-  // Check if cleared
-  if (completed >= 5 && !S.signupFeeCleared) {
-    clearSignupFee();
-  }
-}
-
-async function clearSignupFee() {
-  S.signupFeeCleared = true;
-  localStorage.setItem('r2_signup_cleared_' + S.user.userid, 'true');
-  
-  // Update user balance to 0 if it was negative
-  const pts = parseFloat(S.user.pts) || 0;
-  if (pts < 0) {
-    try {
-      const result = await api('clearSignupFee', { userid: S.user.userid });
-      if (result.success) {
-        updateUserLocal({ pts: '0.00' });
-        showToast('🎉 Congratulations! Your signup fee has been cleared!');
-        sendBrowserNotification('🎉 Signup Fee Cleared!', 'You have completed 5 tasks and your -5 PTS balance has been cleared!');
-      }
-    } catch (err) {
-      // Silent fail
-    }
-  }
-  
-  $('promo-bar').style.display = 'none';
-  renderHome();
-  updateHeader();
-}
-
-function closePromoBar() {
-  $('promo-bar').style.display = 'none';
 }
 
 // ── NAV ──────────────────────────────────────────────────────
@@ -955,7 +802,6 @@ function renderHome() {
   if (!u) return;
   const pts = parseFloat(u.pts) || 0;
   const isNegative = pts < 0;
-  
   $('home-stats').innerHTML =
     sc('Your PTS',    fmt(pts),    isNegative ? 'negative' : 'green') +
     sc('On Hold',     fmt(u.onhold), 'gold', S.holdExpiry ? '<div class="s-note" id="home-cd"></div>' : '') +
@@ -975,7 +821,7 @@ function renderEarn() {
 
   if (e.step === 'list') {
     if (!S.tasks.length) { c.innerHTML = '<p class="empty-msg">No tasks available right now.</p>'; return; }
-    c.innerHTML = S.tasks.map((t, index) =>
+    c.innerHTML = S.tasks.map((t) =>
       `<div class="task-card">
         <div>
           <div><span class="t-id">${esc(t['task#'])}</span><span class="t-badge">+${esc(t.Reward)} PTS</span></div>
@@ -1030,24 +876,13 @@ function renderEarn() {
 
 function earnStart(id) {
   const t = S.tasks.find(x => String(x['task#']).trim() === String(id).trim());
-  if (!t) {
-    showToast('Task not found: ' + id);
-    return;
-  }
-  
+  if (!t) { showToast('Task not found: ' + id); return; }
   if (!t.Reward) t.Reward = '0';
   if (!t.Details) t.Details = 'Complete the task as described.';
   if (!t.Detail2) t.Detail2 = 'Enter the confirmation code from the task.';
   if (!t.LinkConfirm) t.LinkConfirm = '';
   if (!t.FinalConfirm) t.FinalConfirm = '';
-  
-  S.earn = { 
-    step: 'step1', 
-    task: t, 
-    link: '', 
-    final: '', 
-    matched: false 
-  };
+  S.earn = { step: 'step1', task: t, link: '', final: '', matched: false };
   renderEarn();
 }
 
@@ -1068,10 +903,8 @@ function earnReset()  {
 
 async function earnSubmit() {
   const e = S.earn;
-  
   const inp = document.getElementById('step-inp');
   if (inp) e.final = inp.value.trim();
-  
   e.step = 'loading';
   renderEarn();
 
@@ -1095,49 +928,26 @@ async function earnSubmit() {
       ]);
       
       if (result && result.success) {
-        // Update on hold and main balance correctly
         const newOnHold = parseFloat(result.newOnHold || 0);
         const newPts = parseFloat(result.newPts || S.user.pts || 0);
-        updateUserLocal({ 
-          onhold: fmt(newOnHold),
-          pts: fmt(newPts)
-        });
-        
+        updateUserLocal({ onhold: fmt(newOnHold), pts: fmt(newPts) });
         S.tasks = S.tasks.filter(t => t['task#'] !== e.task['task#']);
-        
-        // Track completed tasks for signup fee
-        S.tasksCompleted = (S.tasksCompleted || 0) + 1;
-        localStorage.setItem('r2_tasks_completed_' + S.user.userid, S.tasksCompleted);
-        
         beginHoldTimer();
         renderHome();
-        updatePromoBar();
         e.matched = true;
-        
-        // Send notification for task completion
-        if (S.tasksCompleted === 5) {
-          sendBrowserNotification('🎯 Task Milestone Reached!', 'You have completed 5 tasks! Your signup fee is being cleared.');
-        }
       } else {
         e.matched = false;
-        if (result && result.error) {
-          showToast('Error: ' + result.error);
-        }
+        if (result && result.error) showToast('Error: ' + result.error);
       }
     } else {
       e.matched = false;
-      if (!linkMatch && !finalMatch) {
-        showToast('Both the link and confirmation code are incorrect. Please check and try again.');
-      } else if (!linkMatch) {
-        showToast('The confirmation link does not match. Please check and try again.');
-      } else if (!finalMatch) {
-        showToast('The confirmation code does not match. Please check and try again.');
-      }
+      if (!linkMatch && !finalMatch) showToast('Both the link and confirmation code are incorrect. Please check and try again.');
+      else if (!linkMatch) showToast('The confirmation link does not match. Please check and try again.');
+      else if (!finalMatch) showToast('The confirmation code does not match. Please check and try again.');
     }
 
     e.step = 'result';
     renderEarn();
-    
   } catch (err) {
     showToast('Error: ' + err.message);
     e.step = 'step3';
@@ -1229,9 +1039,7 @@ function toggleReward(name) {
   if (S.expandedReward === name) {
     S.expandedReward = null;
   } else {
-    S.rewards.forEach(r => {
-      if (r.reward_name !== name) r._revealed = false;
-    });
+    S.rewards.forEach(r => { if (r.reward_name !== name) r._revealed = false; });
     S.expandedReward = name;
   }
   renderRedeem();
@@ -1239,26 +1047,19 @@ function toggleReward(name) {
 
 async function confirmReward(name) {
   const reward = S.rewards.find(r => r.reward_name === name);
-  if (!reward) {
-    showToast('Reward not found.');
-    return;
-  }
-
+  if (!reward) { showToast('Reward not found.'); return; }
   const cost = parseFloat(reward.cost) || 0;
   const userPts = parseFloat(S.user.pts) || 0;
-
   if (userPts < cost || userPts < 0) {
     showToast(userPts < 0 ? 'Cannot redeem with negative balance. Complete tasks first.' : 'Insufficient funds to redeem this reward.');
     return;
   }
-
   try {
     const result = await api('redeemReward', {
       userid: S.user.userid,
       rewardName: reward.reward_name,
       cost: cost
     });
-
     if (result.success) {
       updateUserLocal({ pts: parseFloat(result.newPts).toFixed(2) });
       reward._revealed = true;
@@ -1303,20 +1104,17 @@ function openPromo() {
   $('user-dd').classList.remove('open');
   setTimeout(() => $('promo-input').focus(), 80);
 }
-function closePromo()           { $('promo-overlay').classList.remove('show'); }
-function closePromoOnBg(e)      { if (e.target === $('promo-overlay')) closePromo(); }
+function closePromo() { $('promo-overlay').classList.remove('show'); }
+function closePromoOnBg(e) { if (e.target === $('promo-overlay')) closePromo(); }
 
 async function submitPromo() {
   const code = $('promo-input').value.trim().toLowerCase();
   if (!code) return;
-
   $('promo-err').classList.remove('show');
   $('promo-btn-txt').textContent = 'Redeeming…';
   $('promo-submit-btn').disabled = true;
-
   try {
     const result = await api('redeemPromo', { code, userid: S.user.userid });
-
     if (!result.success) {
       $('promo-err-txt').textContent = result.error || 'Failed to redeem code';
       $('promo-err').classList.add('show');
@@ -1324,7 +1122,6 @@ async function submitPromo() {
       $('promo-submit-btn').disabled = false;
       return;
     }
-
     updateUserLocal({ onhold: parseFloat(result.newOnHold).toFixed(2) });
     beginHoldTimer();
     $('ms-pts-val').textContent = '+' + result.amount + ' PTS';
@@ -1332,20 +1129,18 @@ async function submitPromo() {
     $('promo-success').classList.add('show');
     renderHome();
     renderRedeem();
-    $('promo-btn-txt').textContent = 'Redeem Code';
-    $('promo-submit-btn').disabled = false;
   } catch (err) {
     $('promo-err-txt').textContent = 'Error: ' + err.message;
     $('promo-err').classList.add('show');
-    $('promo-btn-txt').textContent = 'Redeem Code';
-    $('promo-submit-btn').disabled = false;
   }
+  $('promo-btn-txt').textContent = 'Redeem Code';
+  $('promo-submit-btn').disabled = false;
 }
 
 // ── HOLD TIMER ───────────────────────────────────────────────
 function beginHoldTimer() {
   const expiry = Date.now() + 3600000;
-  S.holdExpiry  = expiry;
+  S.holdExpiry = expiry;
   localStorage.setItem('r2_hold_expiry_' + S.user.userid, expiry);
   startCountdown();
   renderHome();
@@ -1384,11 +1179,8 @@ async function releaseHold() {
       updateUserLocal({ pts: parseFloat(result.pts).toFixed(2), onhold: '0' });
       renderHome();
       renderRedeem();
-      updatePromoBar();
     }
-  } catch (err) {
-    // Silent fail - will retry on next interval
-  }
+  } catch (err) {}
 }
 
 // ── CHAT ─────────────────────────────────────────────────────
@@ -1396,9 +1188,7 @@ function toggleChat() {
   S.chatOpen = !S.chatOpen;
   $('chat-panel').classList.toggle('open', S.chatOpen);
   $('chat-fab-icon').className = S.chatOpen ? 'fas fa-times' : 'fas fa-comments';
-  
   if (S.chatOpen) {
-    // Reset unread count when chat opens
     S.unreadCount = 0;
     updateChatNotificationDot(false);
     renderChatMessages();
@@ -1414,12 +1204,11 @@ function toggleChat() {
 async function renderChatMessages() {
   if (!S.user) return;
   try {
-    const data    = await api('getMessages');
-    const msgs    = data.messages      || [];
-    const banned  = data.bannedUserids || [];
-    const uid     = S.user.userid;
-    S.isBanned    = banned.includes(uid);
-
+    const data = await api('getMessages');
+    const msgs = data.messages || [];
+    const banned = data.bannedUserids || [];
+    const uid = S.user.userid;
+    S.isBanned = banned.includes(uid);
     $('banned-badge').className = 'banned-badge' + (S.isBanned ? ' show' : '');
     const sb = $('chat-send-btn'), ci = $('chat-inp');
     if (S.isBanned) {
@@ -1433,55 +1222,23 @@ async function renderChatMessages() {
       ci.className = 'chat-inp';
       ci.placeholder = 'Type a message…';
     }
-
     const cont = $('chat-msgs');
     const atBottom = cont.scrollHeight - cont.scrollTop - cont.clientHeight < 60;
-
-    // Check for new messages for notification
     const currentCount = msgs.length;
     const isChatOpen = $('chat-panel').classList.contains('open');
-    
-    // Check for new messages from other users
     if (currentCount > S.lastMessageCount && S.lastMessageCount > 0) {
-      // Find new messages that aren't from the current user
       const newMsgs = msgs.slice(S.lastMessageCount);
       const otherUserMsgs = newMsgs.filter(m => m.userid !== uid);
-      
       if (otherUserMsgs.length > 0 && !isChatOpen) {
         S.unreadCount += otherUserMsgs.length;
         updateChatNotificationDot(true);
-        
-        // Send browser notification for new messages
         const lastMsg = otherUserMsgs[otherUserMsgs.length - 1];
-        const sender = lastMsg.userid;
-        const message = lastMsg.message.length > 50 ? lastMsg.message.substring(0, 50) + '...' : lastMsg.message;
-        
-        // Try to send notification
-        const notifSent = sendBrowserNotification(
-          `💬 New message from ${sender}`,
-          message,
-          'chat-' + Date.now()
-        );
-        
-        // If notification failed, log it
-        if (!notifSent) {
-          console.log('Notification failed - permission may not be granted');
-        }
-        
-        // Also play a subtle sound or vibration if possible
-        if (navigator.vibrate) {
-          navigator.vibrate(100);
-        }
+        sendBrowserNotification(`💬 New message from ${lastMsg.userid}`, lastMsg.message.length > 50 ? lastMsg.message.substring(0,50)+'...' : lastMsg.message, 'chat-'+Date.now());
+        if (navigator.vibrate) navigator.vibrate(100);
       }
     }
-    
     S.lastMessageCount = currentCount;
-
-    if (!msgs.length) { 
-      cont.innerHTML = '<p class="chat-empty">No messages yet. Say hi! 👋</p>'; 
-      return; 
-    }
-    
+    if (!msgs.length) { cont.innerHTML = '<p class="chat-empty">No messages yet. Say hi! 👋</p>'; return; }
     cont.innerHTML = msgs.map(m => {
       const own = m.userid === uid;
       return `<div class="chat-msg ${own?'own':'other'}">
@@ -1489,13 +1246,8 @@ async function renderChatMessages() {
         <div class="msg-bubble">${esc(m.message)}</div>
       </div>`;
     }).join('');
-    
     if (atBottom) cont.scrollTop = cont.scrollHeight;
-    
-  } catch (err) {
-    // Silent fail for chat
-    console.log('Chat render error:', err);
-  }
+  } catch (err) {}
 }
 
 function onChatInput() {
@@ -1522,9 +1274,7 @@ async function sendChatMsg() {
   try {
     await api('sendMessage', { userid: S.user.userid, message: val });
     await renderChatMessages();
-  } catch (err) {
-    // Silent fail
-  }
+  } catch (err) {}
   sb.disabled = false;
   $('chat-inp').focus();
 }
@@ -1543,27 +1293,19 @@ document.addEventListener('keydown', e => {
 
 // ── INIT ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('Page loaded, checking for saved session...');
-  
   const savedUid = localStorage.getItem('r2_userid');
   if (!savedUid) return;
-
   $('login-btn').disabled = true;
   $('login-btn-txt').textContent = 'Restoring session…';
-
   try {
     const users = await api('getUsers');
     const fresh = Array.isArray(users) ? users.find(u => u.userid === savedUid) : null;
-
     $('login-btn').disabled = false;
     $('login-btn-txt').textContent = 'Sign In';
-
     if (fresh) {
       S.user = { ...fresh };
       enterDashboard();
       await loadAllData();
-      
-      // Check notification permission after everything loads
       setTimeout(checkAndRequestNotification, 1500);
     } else {
       localStorage.removeItem('r2_userid');
@@ -1575,11 +1317,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// Log notification support on load
 console.log('Notification support:', checkNotificationSupport());
-if (checkNotificationSupport()) {
-  console.log('Notification permission:', Notification.permission);
-}
+if (checkNotificationSupport()) console.log('Notification permission:', Notification.permission);
 </script>
 </body>
 </html>
