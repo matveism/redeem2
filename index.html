@@ -39,13 +39,7 @@
     .pts-main small{color:var(--muted);font-weight:400;font-size:11px}
     .pts-main.negative{color:var(--red)}
 
-    /* NOTIFICATION BELL */
-    .notif-badge{position:relative;display:inline-flex}
-    .notif-badge .badge-count{position:absolute;top:-8px;right:-8px;background:var(--red);color:#fff;border-radius:50%;width:20px;height:20px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #000;animation:pulse 1.5s ease-in-out infinite}
-    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
-    .notif-badge .badge-count.hidden{display:none}
-
-    /* PROMO BAR - NEW USER */
+    /* PROMO BAR */
     .promo-bar{background:linear-gradient(135deg,#1a0a0a,#2a1a0a);border:1px solid var(--gold);border-radius:8px;padding:12px 20px;margin:0 0 16px 21px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;animation:glowPulse 2s ease-in-out infinite}
     @keyframes glowPulse{0%,100%{border-color:var(--gold);box-shadow:0 0 10px rgba(212,160,23,0.1)}50%{border-color:#ffd700;box-shadow:0 0 25px rgba(212,160,23,0.3)}}
     .promo-bar .promo-icon{font-size:28px;color:var(--gold);flex-shrink:0}
@@ -232,6 +226,9 @@
     .notif-permission-toast button{background:var(--gold);color:#000;border:none;border-radius:6px;padding:6px 16px;font-weight:700;cursor:pointer;margin-left:10px}
     .notif-permission-toast button:hover{opacity:.85}
 
+    /* AUDIO NOTIFICATION */
+    #notif-audio{display:none}
+
     /* CHAT */
     .chat-fab{position:fixed;bottom:24px;right:24px;width:54px;height:54px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.55);z-index:1000;font-size:22px;color:#000;transition:transform .2s ease,box-shadow .2s ease}
     .chat-fab.show{display:flex}
@@ -239,6 +236,7 @@
     .chat-fab:active{transform:scale(.96)}
     .chat-fab .notif-dot{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--red);border-radius:50%;border:2px solid #000;display:none;animation:pulse 1.5s ease-in-out infinite}
     .chat-fab .notif-dot.show{display:block}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
     .chat-panel{position:fixed;bottom:90px;right:24px;width:330px;height:500px;background:#1a1a1a;border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:14px;display:none;flex-direction:column;box-shadow:0 10px 48px rgba(0,0,0,.75);z-index:999;overflow:hidden}
     .chat-panel.open{display:flex;animation:chatIn .2s ease}
     @keyframes chatIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -335,7 +333,7 @@
     </div>
   </div>
 
-  <!-- PROMO BAR - NEW USER -->
+  <!-- PROMO BAR -->
   <div id="promo-bar" class="promo-bar" style="display:none;">
     <div class="promo-icon">🎯</div>
     <div class="promo-text">
@@ -632,7 +630,9 @@ async function requestNotificationPermission() {
       showToast('🔔 Notifications enabled! You\'ll get alerts for new messages.');
       $('notif-permission-toast').classList.remove('show');
       // Send a test notification
-      sendBrowserNotification('✅ Notifications Enabled', 'You will now receive alerts for new messages.');
+      setTimeout(() => {
+        sendBrowserNotification('✅ Notifications Enabled', 'You will now receive alerts for new messages.');
+      }, 500);
     } else if (permission === 'denied') {
       showToast('❌ Notification permission denied. You can enable it in browser settings.');
     }
@@ -642,25 +642,34 @@ async function requestNotificationPermission() {
 }
 
 function sendBrowserNotification(title, body, tag) {
-  if (!checkNotificationSupport()) return false;
-  if (Notification.permission !== 'granted') return false;
+  console.log('Attempting to send notification:', title, body);
+  
+  if (!checkNotificationSupport()) {
+    console.log('Notifications not supported');
+    return false;
+  }
+  
+  if (Notification.permission !== 'granted') {
+    console.log('Notification permission not granted. Current state:', Notification.permission);
+    return false;
+  }
   
   try {
     const options = {
-      body: body,
+      body: body || '',
       icon: '🔔',
-      tag: tag || 'chat-notification',
+      tag: tag || 'chat-notification-' + Date.now(),
       requireInteraction: true,
-      silent: false
+      silent: false,
+      renotify: true,
+      vibrate: [200, 100, 200]
     };
     
-    const notification = new Notification(title, options);
+    console.log('Creating notification with options:', options);
+    const notification = new Notification(title || 'Redeem2 Notification', options);
     
-    // Close notification after 5 seconds
-    setTimeout(() => notification.close(), 5000);
-    
-    // Handle click - open chat
-    notification.onclick = function() {
+    notification.onclick = function(e) {
+      e.preventDefault();
       window.focus();
       if (!$('chat-panel').classList.contains('open')) {
         toggleChat();
@@ -668,8 +677,19 @@ function sendBrowserNotification(title, body, tag) {
       notification.close();
     };
     
+    notification.onerror = function(e) {
+      console.error('Notification error:', e);
+    };
+    
+    // Auto-close after 8 seconds
+    setTimeout(() => {
+      try { notification.close(); } catch(e) {}
+    }, 8000);
+    
+    console.log('Notification sent successfully');
     return true;
   } catch (err) {
+    console.error('Error sending notification:', err);
     return false;
   }
 }
@@ -681,6 +701,8 @@ function checkAndRequestNotification() {
   } else if (checkNotificationSupport()) {
     S.notificationPermission = Notification.permission;
   }
+  
+  console.log('Notification permission state:', S.notificationPermission);
   
   // Show permission toast if not granted or denied
   if (checkNotificationSupport() && 
@@ -733,7 +755,7 @@ async function doLogin() {
     await loadAllData();
     
     // Check notification permission
-    checkAndRequestNotification();
+    setTimeout(checkAndRequestNotification, 1000);
   } catch (err) {
     $('login-btn').disabled = false;
     $('login-btn-txt').textContent = 'Sign In';
@@ -1373,10 +1395,11 @@ function toggleChat() {
     S.unreadCount = 0;
     updateChatNotificationDot(false);
     renderChatMessages();
+    if (S.chatPoll) clearInterval(S.chatPoll);
     S.chatPoll = setInterval(renderChatMessages, 4000);
     setTimeout(() => $('chat-inp').focus(), 80);
   } else {
-    clearInterval(S.chatPoll);
+    if (S.chatPoll) clearInterval(S.chatPoll);
     S.chatPoll = null;
   }
 }
@@ -1426,11 +1449,17 @@ async function renderChatMessages() {
         const sender = lastMsg.userid;
         const message = lastMsg.message.length > 50 ? lastMsg.message.substring(0, 50) + '...' : lastMsg.message;
         
-        sendBrowserNotification(
+        // Try to send notification
+        const notifSent = sendBrowserNotification(
           `💬 New message from ${sender}`,
           message,
           'chat-' + Date.now()
         );
+        
+        // If notification failed, log it
+        if (!notifSent) {
+          console.log('Notification failed - permission may not be granted');
+        }
         
         // Also play a subtle sound or vibration if possible
         if (navigator.vibrate) {
@@ -1458,6 +1487,7 @@ async function renderChatMessages() {
     
   } catch (err) {
     // Silent fail for chat
+    console.log('Chat render error:', err);
   }
 }
 
@@ -1506,6 +1536,8 @@ document.addEventListener('keydown', e => {
 
 // ── INIT ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+  console.log('Page loaded, checking for saved session...');
+  
   const savedUid = localStorage.getItem('r2_userid');
   if (!savedUid) return;
 
@@ -1523,7 +1555,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       S.user = { ...fresh };
       enterDashboard();
       await loadAllData();
-      checkAndRequestNotification();
+      
+      // Check notification permission after everything loads
+      setTimeout(checkAndRequestNotification, 1500);
     } else {
       localStorage.removeItem('r2_userid');
     }
@@ -1533,6 +1567,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     showToast('Session restore failed: ' + err.message);
   }
 });
+
+// Log notification support on load
+console.log('Notification support:', checkNotificationSupport());
+if (checkNotificationSupport()) {
+  console.log('Notification permission:', Notification.permission);
+}
 </script>
 </body>
 </html>
