@@ -551,8 +551,6 @@ let S = {
   chatPoll: null,
   holdTimer: null,
   holdExpiry: null,
-  tasksCompleted: 0,
-  signupFeeCleared: true, // always true, no signup fee
   lastMessageCount: 0,
   unreadCount: 0,
   notificationPermission: 'default'
@@ -578,52 +576,42 @@ function checkNotificationSupport() {
   return 'Notification' in window;
 }
 
-function getNotificationPermission() {
-  if (!checkNotificationSupport()) return 'denied';
-  return Notification.permission;
-}
-
 async function requestNotificationPermission() {
   if (!checkNotificationSupport()) {
     showToast('Notifications are not supported on this browser.');
     return;
   }
-  
   try {
     const permission = await Notification.requestPermission();
     S.notificationPermission = permission;
     localStorage.setItem('r2_notification_permission', permission);
-    
     if (permission === 'granted') {
-      showToast('🔔 Notifications enabled! You\'ll get alerts for new messages.');
+      showToast('🔔 Notifications enabled!');
       $('notif-permission-toast').classList.remove('show');
       setTimeout(() => {
-        sendBrowserNotification('✅ Notifications Enabled', 'You will now receive alerts for new messages.');
+        sendBrowserNotification('✅ Notifications Enabled', 'You will now receive alerts.');
       }, 500);
     } else if (permission === 'denied') {
-      showToast('❌ Notification permission denied. You can enable it in browser settings.');
+      showToast('❌ Notification permission denied.');
     }
   } catch (err) {
-    showToast('Error requesting notification permission: ' + err.message);
+    showToast('Error: ' + err.message);
   }
 }
 
 function sendBrowserNotification(title, body, tag) {
   if (!checkNotificationSupport() || Notification.permission !== 'granted') return false;
   try {
-    const notification = new Notification(title || 'Redeem2 Notification', {
+    const notification = new Notification(title || 'Redeem2', {
       body: body || '',
       icon: '🔔',
-      tag: tag || 'chat-notification-' + Date.now(),
+      tag: tag || 'notif-' + Date.now(),
       requireInteraction: true,
-      silent: false,
-      renotify: true,
       vibrate: [200, 100, 200]
     });
     notification.onclick = function(e) {
       e.preventDefault();
       window.focus();
-      if (!$('chat-panel').classList.contains('open')) toggleChat();
       notification.close();
     };
     setTimeout(() => { try { notification.close(); } catch(e) {} }, 8000);
@@ -723,8 +711,7 @@ async function doLogout() {
   S = { user:null, tasks:[], promos:[], rewards:[], users:[], isBanned:false,
         earn:{step:'list',task:null,link:'',final:'',matched:false},
         expandedReward:null, chatOpen:false, chatPoll:null, holdTimer:null, holdExpiry:null,
-        tasksCompleted:0, signupFeeCleared:true, lastMessageCount:0, unreadCount:0,
-        notificationPermission:'default' };
+        lastMessageCount:0, unreadCount:0, notificationPermission:'default' };
   $('dashboard').classList.remove('show');
   $('login-screen').style.display = 'flex';
   $('user-dd').classList.remove('open');
@@ -928,22 +915,32 @@ async function earnSubmit() {
       ]);
       
       if (result && result.success) {
+        // FIX: Use the values returned from the server
+        // The server should return newOnHold (the on-hold balance after adding reward)
+        // and newPts (the main balance, unchanged)
         const newOnHold = parseFloat(result.newOnHold || 0);
         const newPts = parseFloat(result.newPts || S.user.pts || 0);
-        updateUserLocal({ onhold: fmt(newOnHold), pts: fmt(newPts) });
+        
+        updateUserLocal({ 
+          onhold: fmt(newOnHold),
+          pts: fmt(newPts)
+        });
+        
         S.tasks = S.tasks.filter(t => t['task#'] !== e.task['task#']);
         beginHoldTimer();
         renderHome();
         e.matched = true;
+        showToast('✅ Task completed! +' + e.task.Reward + ' PTS added to On Hold!');
+        sendBrowserNotification('✅ Task Complete!', 'You earned +' + e.task.Reward + ' PTS!');
       } else {
         e.matched = false;
         if (result && result.error) showToast('Error: ' + result.error);
       }
     } else {
       e.matched = false;
-      if (!linkMatch && !finalMatch) showToast('Both the link and confirmation code are incorrect. Please check and try again.');
-      else if (!linkMatch) showToast('The confirmation link does not match. Please check and try again.');
-      else if (!finalMatch) showToast('The confirmation code does not match. Please check and try again.');
+      if (!linkMatch && !finalMatch) showToast('Both the link and confirmation code are incorrect.');
+      else if (!linkMatch) showToast('The confirmation link does not match.');
+      else if (!finalMatch) showToast('The confirmation code does not match.');
     }
 
     e.step = 'result';
@@ -981,14 +978,14 @@ function renderRedeem() {
               <div style="color:var(--muted);font-size:14px;margin-bottom:8px;">This will deduct <span class="confirm-cost">${esc(r.cost)} PTS</span> from your balance</div>
               <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:8px 0;">
                 <span style="color:var(--muted);font-size:13px;">Your balance: <strong style="color:${userPts < 0 ? 'var(--red)' : 'var(--green)'};">${fmt(userPts)} PTS</strong></span>
-                ${!canAfford ? `<span style="color:var(--red);font-size:13px;font-weight:700;">${userPts < 0 ? '⚠️ Negative balance - complete tasks first' : '⚠️ Insufficient funds'}</span>` : ''}
+                ${!canAfford ? `<span style="color:var(--red);font-size:13px;font-weight:700;">${userPts < 0 ? '⚠️ Negative balance' : '⚠️ Insufficient funds'}</span>` : ''}
               </div>
             </div>
             <button class="confirm-btn" onclick="confirmReward('${safeName}')" ${!canAfford ? 'disabled' : ''}>
               <i class="fas fa-check-circle"></i> Confirm & Redeem (${esc(r.cost)} PTS)
             </button>
             ${canAfford ? `<div class="confirm-warning">⚠️ This action is final and cannot be undone</div>` : 
-                          `<div class="confirm-warning" style="color:var(--red);">${userPts < 0 ? 'Clear your negative balance first by completing tasks' : 'You need ' + fmt(cost - userPts) + ' more PTS'}</div>`}
+                          `<div class="confirm-warning" style="color:var(--red);">${userPts < 0 ? 'Clear your negative balance first' : 'You need ' + fmt(cost - userPts) + ' more PTS'}</div>`}
           </div>
         </div>`;
       } else {
@@ -1051,7 +1048,7 @@ async function confirmReward(name) {
   const cost = parseFloat(reward.cost) || 0;
   const userPts = parseFloat(S.user.pts) || 0;
   if (userPts < cost || userPts < 0) {
-    showToast(userPts < 0 ? 'Cannot redeem with negative balance. Complete tasks first.' : 'Insufficient funds to redeem this reward.');
+    showToast(userPts < 0 ? 'Cannot redeem with negative balance.' : 'Insufficient funds.');
     return;
   }
   try {
@@ -1065,13 +1062,13 @@ async function confirmReward(name) {
       reward._revealed = true;
       renderRedeem();
       renderHome();
-      showToast('✅ Reward redeemed successfully!');
-      sendBrowserNotification('🎁 Reward Redeemed!', `You have successfully redeemed ${reward.reward_name}!`);
+      showToast('✅ Reward redeemed!');
+      sendBrowserNotification('🎁 Reward Redeemed!', `You redeemed ${reward.reward_name}!`);
     } else {
-      showToast('Failed to redeem: ' + (result.error || 'Unknown error'));
+      showToast('Failed: ' + (result.error || 'Unknown error'));
     }
   } catch (err) {
-    showToast('Error redeeming reward: ' + err.message);
+    showToast('Error: ' + err.message);
   }
 }
 
@@ -1179,6 +1176,8 @@ async function releaseHold() {
       updateUserLocal({ pts: parseFloat(result.pts).toFixed(2), onhold: '0' });
       renderHome();
       renderRedeem();
+      showToast('✅ On Hold points released to your balance!');
+      sendBrowserNotification('💰 Points Released!', 'Your On Hold points have been added to your balance.');
     }
   } catch (err) {}
 }
@@ -1233,7 +1232,9 @@ async function renderChatMessages() {
         S.unreadCount += otherUserMsgs.length;
         updateChatNotificationDot(true);
         const lastMsg = otherUserMsgs[otherUserMsgs.length - 1];
-        sendBrowserNotification(`💬 New message from ${lastMsg.userid}`, lastMsg.message.length > 50 ? lastMsg.message.substring(0,50)+'...' : lastMsg.message, 'chat-'+Date.now());
+        sendBrowserNotification(`💬 New message from ${lastMsg.userid}`, 
+          lastMsg.message.length > 50 ? lastMsg.message.substring(0,50)+'...' : lastMsg.message, 
+          'chat-'+Date.now());
         if (navigator.vibrate) navigator.vibrate(100);
       }
     }
@@ -1316,9 +1317,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     showToast('Session restore failed: ' + err.message);
   }
 });
-
-console.log('Notification support:', checkNotificationSupport());
-if (checkNotificationSupport()) console.log('Notification permission:', Notification.permission);
 </script>
 </body>
 </html>
