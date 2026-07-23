@@ -12,7 +12,7 @@
       padding: 0;
     }
     body {
-      background: lightblue;
+      background: #f4f7fc;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       color: #1a2634;
       min-height: 100vh;
@@ -1165,6 +1165,19 @@ const esc = s => { if (s === undefined || s === null) return ''; return String(s
 const fmt = n => { if (n === undefined || n === null) return '0.00'; return parseFloat(n || 0).toFixed(2); };
 const norm = s => { if (s === undefined || s === null) return ''; return String(s).trim().toLowerCase().replace(/\/+$/, '').replace(/\s+/g, ' '); };
 
+// Helper to safely get string from any field
+function safeString(value) {
+  if (value === undefined || value === null) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object') {
+    // If it's an array, join it
+    if (Array.isArray(value)) return value.join('\n');
+    // If it's an object, try to get a string representation
+    try { return JSON.stringify(value); } catch(e) { return ''; }
+  }
+  return String(value);
+}
+
 // ── NOTIFICATIONS ────────────────────────────────────────────
 function checkNotificationSupport() { return 'Notification' in window; }
 async function requestNotificationPermission() {
@@ -1307,7 +1320,7 @@ function renderEarn() {
   if (e.step === 'list') {
     if (!S.tasks || !S.tasks.length) { c.innerHTML = '<p class="empty-msg">No tasks available.</p>'; return; }
     c.innerHTML = S.tasks.map(t => {
-      const details = t.Details || 'Complete the task as described.';
+      const details = safeString(t.Details || 'Complete the task as described.');
       const firstLine = details.split('\n')[0] || details;
       const reward = t.Reward || '0';
       const taskId = t['task#'] || 'Unknown';
@@ -1328,13 +1341,13 @@ function renderEarn() {
   const ind = [1,2,3].map(n => `<div class="step-c ${n<sn?'done':n===sn?'act':''}">${n<sn?'✓':n}</div>${n<3?`<div class="step-ln ${n<sn?'done':''}"></div>`:''}`).join('') + `<span class="step-lbl">Step ${sn} of 3</span>`;
   let body = '';
   if (sn === 1) {
-    const details = e.task.Details || 'Complete the task as described.';
+    const details = safeString(e.task.Details || 'Complete the task as described.');
     const lines = details.split('\n').filter(l => l.trim());
     body = `<div class="st-title">Read instructions</div><div class="instr-box">${lines.map(l=>`<div class="instr-line">${esc(l)}</div>`).join('')}</div><button class="btn-out" onclick="earnGo('step2')">I've read <i class="fas fa-chevron-right"></i></button>`;
   } else if (sn === 2) {
     body = `<div class="st-title">Paste confirmation link</div><p class="st-desc">Complete the task and paste the URL.</p><input class="step-inp" type="url" id="step-inp" placeholder="https://example.com/page" value="${esc(e.link)}" oninput="S.earn.link=this.value;document.getElementById('step-next').disabled=!this.value.trim()"><button class="btn-out" id="step-next" onclick="earnGo('step3')" ${!e.link.trim()?'disabled':''}>Next <i class="fas fa-chevron-right"></i></button>`;
   } else {
-    const hint = e.task.Detail2 || 'Enter the confirmation code.';
+    const hint = safeString(e.task.Detail2 || 'Enter the confirmation code.');
     body = `<div class="st-title">Final verification</div><div class="hint-box"><p class="hint-txt">${esc(hint)}</p></div><input class="step-inp" id="step-inp" placeholder="Enter your answer" value="${esc(e.final)}" oninput="S.earn.final=this.value;document.getElementById('step-submit').disabled=!this.value.trim()"><button class="btn-gold" id="step-submit" onclick="earnSubmit()" ${!e.final.trim()?'disabled':''}>Submit Task</button>`;
   }
   const taskId = e.task['task#'] || 'Unknown';
@@ -1344,7 +1357,8 @@ function renderEarn() {
 function earnStart(id) {
   const t = S.tasks.find(x => String(x['task#']).trim() === String(id).trim());
   if (!t) { showToast('Task not found.'); return; }
-  if (!t.Reward) t.Reward = '0'; if (!t.Details) t.Details = 'Complete the task.';
+  if (!t.Reward) t.Reward = '0'; 
+  if (!t.Details) t.Details = 'Complete the task.';
   if (!t.Detail2) t.Detail2 = 'Enter the confirmation code.';
   S.earn = { step:'step1', task:t, link:'', final:'', matched:false };
   renderEarn();
