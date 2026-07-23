@@ -2,329 +2,1040 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
   <title>ⓡeedem2 · Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    :root{--bg:#0d1a33;--surface:#151515;--card:#1e1e1e;--card2:#222;--nav1:#2a2a2a;--nav2:#1a1a1a;--topbar:#000;--gold:#d4a017;--green:#6b8e23;--text:#e0e0e0;--muted:#888;--border:#2a2a2a;--bl:#333;--red:#f44336}
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);font-family:'Roboto','Segoe UI',sans-serif;color:var(--text);min-height:100vh;display:flex;flex-direction:column}
-    button,input{font-family:inherit}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: lightblue;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #1a2634;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+    button, input {
+      font-family: inherit;
+    }
 
-    /* LOGIN */
-    #login-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
-    .login-logo{font-family:Georgia,serif;font-style:italic;font-size:42px;color:orange;font-weight:700;margin-bottom:32px;text-align:center}
-    .login-card{width:100%;max-width:380px;background:#1a1a1a;border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:14px;padding:32px}
-    .lf-label{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
-    .form-input{width:100%;background:#111;border:1px solid #444;border-radius:8px;height:44px;padding:0 14px;color:var(--text);font-size:14px;outline:none;transition:border-color .15s;margin-bottom:18px}
-    .form-input:focus{border-color:var(--gold)}
-    .login-btn{width:100%;background:var(--gold);color:#000;border:none;border-radius:8px;height:46px;font-weight:700;font-size:15px;cursor:pointer;transition:opacity .15s;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px}
-    .login-btn:hover{opacity:.88}
-    .login-btn:disabled{opacity:.6;cursor:not-allowed}
-    .err-box{display:flex;align-items:center;gap:8px;background:#2a1212;border:1px solid #5a2020;border-radius:8px;padding:10px 14px;margin-bottom:16px;color:var(--red);font-size:13px}
-    .err-box.hidden{display:none}
+    /* ----- LOGIN (bright & airy) ----- */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: linear-gradient(145deg, #ffffff, #f0f4fa);
+    }
+    .login-logo {
+      font-family: 'Georgia', serif;
+      font-style: italic;
+      font-size: 38px;
+      color: #e67e22;
+      font-weight: 700;
+      margin-bottom: 28px;
+      text-align: center;
+      letter-spacing: -0.5px;
+    }
+    .login-logo span { color: #e67e22; }
+    .login-card {
+      width: 100%;
+      max-width: 360px;
+      background: #ffffff;
+      border-radius: 28px;
+      padding: 32px 24px;
+      box-shadow: 0 20px 40px -12px rgba(0,20,40,0.20);
+      border: 1px solid rgba(230, 126, 34, 0.15);
+    }
+    .lf-label {
+      display: block;
+      color: #4a5a6e;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+    .form-input {
+      width: 100%;
+      background: #f8faff;
+      border: 1.5px solid #e2e9f2;
+      border-radius: 16px;
+      height: 48px;
+      padding: 0 16px;
+      color: #1a2634;
+      font-size: 15px;
+      outline: none;
+      transition: border 0.15s, box-shadow 0.15s;
+      margin-bottom: 18px;
+    }
+    .form-input:focus {
+      border-color: #e67e22;
+      box-shadow: 0 0 0 4px rgba(230, 126, 34, 0.12);
+    }
+    .login-btn {
+      width: 100%;
+      background: #e67e22;
+      color: #fff;
+      border: none;
+      border-radius: 40px;
+      height: 50px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 8px 20px -6px rgba(230, 126, 34, 0.35);
+    }
+    .login-btn:hover { background: #cf6d17; transform: scale(0.98); }
+    .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .err-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff0ee;
+      border: 1px solid #f5c2b7;
+      border-radius: 16px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      color: #b33c2e;
+      font-size: 13px;
+    }
+    .err-box.hidden { display: none; }
 
-    /* DASHBOARD */
-    #dashboard{display:none;flex-direction:column;min-height:100vh}
-    #dashboard.show{display:flex}
+    /* ----- DASHBOARD (light, bright) ----- */
+    #dashboard {
+      display: none;
+      flex-direction: column;
+      min-height: 100vh;
+      background: #f4f7fc;
+    }
+    #dashboard.show { display: flex; }
 
-    /* TOP BAR */
-    .top-bar{background:var(--topbar);border-bottom:1px solid var(--bl);padding:6px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px 12px;flex-shrink:0}
-    .logo{font-family:Georgia,serif;font-style:italic;font-size:20px;color:orange;font-weight:700}
-    .pts-row{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap;font-size:13px}
-    .onhold-amt{color:var(--gold);font-weight:700}
-    .onhold-lbl{color:var(--muted);font-size:11px}
-    .countdown{color:var(--muted);font-size:11px;margin-left:5px}
-    .pts-main{font-weight:700;font-size:16px}
-    .pts-main small{color:var(--muted);font-weight:400;font-size:11px}
-    .pts-main.negative{color:var(--red)}
+    /* top bar */
+    .top-bar {
+      background: #ffffff;
+      border-bottom: 1px solid #e9eef3;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+    .logo {
+      font-family: 'Georgia', serif;
+      font-style: italic;
+      font-size: 22px;
+      color: #e67e22;
+      font-weight: 700;
+    }
+    .pts-row {
+      display: flex;
+      gap: 20px;
+      align-items: baseline;
+      flex-wrap: wrap;
+      font-size: 14px;
+    }
+    .onhold-amt { color: #e67e22; font-weight: 700; }
+    .onhold-lbl { color: #5d6f83; font-size: 12px; }
+    .countdown { color: #5d6f83; font-size: 12px; margin-left: 6px; }
+    .pts-main { font-weight: 700; font-size: 18px; color: #1a2634; }
+    .pts-main small { color: #5d6f83; font-weight: 400; font-size: 12px; }
+    .pts-main.negative { color: #d14c4c; }
 
-    /* NAV */
-    .nav{background:linear-gradient(180deg,var(--nav1),var(--nav2));display:flex;align-items:center;justify-content:space-between;padding:0 16px;min-height:56px;border-bottom:1px solid #000;flex-wrap:wrap;gap:4px 12px;flex-shrink:0}
-    .nav-left{display:flex;align-items:center;flex-wrap:wrap}
-    .nav-tab{background:none;border:none;border-bottom:2px solid transparent;color:#a0a0a0;cursor:pointer;font-size:16px;font-weight:600;padding:18px 12px 16px;display:inline-flex;align-items:center;gap:5px;transition:color .2s}
-    .nav-tab:hover{color:var(--gold)}
-    .nav-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
-    .nav-right{display:flex;align-items:center;gap:10px}
-    .icon-btn{background:#000;border:1px solid var(--bl);border-radius:6px;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;color:#b0b0b0;cursor:pointer;font-size:15px;transition:color .15s,border-color .15s}
-    .icon-btn:hover{color:var(--gold);border-color:var(--gold)}
-    .user-chip{display:flex;align-items:center;gap:8px;color:#fff;font-weight:600;font-size:15px;background:#1f1f1f;padding:4px 12px 4px 6px;border-radius:40px;border:1px solid var(--bl);cursor:pointer;position:relative;user-select:none}
-    .avatar{width:32px;height:32px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:#000;font-size:15px;flex-shrink:0}
-    .user-dd{position:absolute;top:calc(100% + 8px);right:0;background:#1a1a1a;border:1px solid var(--border);border-radius:8px;padding:4px;min-width:130px;box-shadow:0 8px 24px rgba(0,0,0,.7);display:none;z-index:200}
-    .user-dd.open{display:block}
-    .dd-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;background:none;border:none;border-radius:6px;color:#f06060;cursor:pointer;font-size:14px;transition:background .15s}
-    .dd-item:hover{background:#2a1212}
+    /* nav */
+    .nav {
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      min-height: 60px;
+      border-bottom: 1px solid #e9eef3;
+      flex-wrap: wrap;
+      gap: 4px 8px;
+      flex-shrink: 0;
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .nav-tab {
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: #5d6f83;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 16px 12px 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.15s;
+      border-radius: 0;
+    }
+    .nav-tab:hover { color: #e67e22; }
+    .nav-tab.active { color: #e67e22; border-bottom-color: #e67e22; }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .icon-btn {
+      background: #f0f4fa;
+      border: none;
+      border-radius: 40px;
+      width: 40px;
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #2c3e50;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.15s;
+    }
+    .icon-btn:hover { background: #e67e22; color: #fff; }
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f0f4fa;
+      padding: 4px 12px 4px 6px;
+      border-radius: 40px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      position: relative;
+      font-weight: 600;
+      font-size: 14px;
+      transition: 0.15s;
+    }
+    .user-chip:hover { border-color: #e67e22; }
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #e67e22;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .user-dd {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: #fff;
+      border: 1px solid #e2e9f2;
+      border-radius: 20px;
+      padding: 6px;
+      min-width: 130px;
+      box-shadow: 0 16px 40px -12px rgba(0,0,0,0.15);
+      display: none;
+      z-index: 200;
+    }
+    .user-dd.open { display: block; }
+    .dd-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 14px;
+      background: none;
+      border: none;
+      border-radius: 40px;
+      color: #d14c4c;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: 0.1s;
+    }
+    .dd-item:hover { background: #fee9e7; }
 
-    /* PAGE */
-    .page-content{background:var(--surface);flex:1;padding:24px 20px}
-    .tab-sec{display:none;max-width:820px;margin:0 auto}
-    .tab-sec.active{display:block;animation:fadeIn .25s ease}
-    @keyframes fadeIn{from{opacity:.3;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-    .sec-title{font-size:24px;font-weight:500;color:#e8e8e8;border-left:5px solid var(--gold);padding-left:16px;display:flex;align-items:center;gap:10px;margin-bottom:4px}
-    .sec-title i{color:var(--gold)}
-    .sec-desc{color:#aaa;font-size:15px;line-height:1.6;margin:10px 0 18px;padding-left:21px}
-    .sub-head{color:var(--gold);font-size:12px;font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:.07em}
+    /* page content */
+    .page-content {
+      flex: 1;
+      padding: 24px 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .tab-sec {
+      display: none;
+      animation: fadeUp 0.25s ease;
+    }
+    .tab-sec.active { display: block; }
+    @keyframes fadeUp {
+      from { opacity: 0.4; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .sec-title {
+      font-size: 26px;
+      font-weight: 600;
+      color: #1a2634;
+      border-left: 6px solid #e67e22;
+      padding-left: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .sec-title i { color: #e67e22; }
+    .sec-desc {
+      color: #4a5a6e;
+      font-size: 15px;
+      line-height: 1.6;
+      margin: 6px 0 18px;
+      padding-left: 22px;
+    }
+    .sub-head {
+      color: #e67e22;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
 
-    /* STATS */
-    .stat-grid{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;padding-left:21px}
-    .stat-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;flex:1 1 110px}
-    .s-lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-    .s-val{font-size:20px;font-weight:700;color:var(--green)}
-    .s-val.gold{color:var(--gold)}
-    .s-val.negative{color:var(--red)}
-    .s-note{color:var(--muted);font-size:11px;margin-top:3px}
+    /* cards & grids */
+    .stat-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-left: 22px;
+    }
+    .stat-card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 16px 22px;
+      flex: 1 1 110px;
+      border: 1px solid #e9eef3;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+    .s-lbl {
+      color: #5d6f83;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+    .s-val {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2a7a4a;
+    }
+    .s-val.gold { color: #e67e22; }
+    .s-val.negative { color: #d14c4c; }
+    .s-note { color: #5d6f83; font-size: 12px; margin-top: 4px; }
 
-    /* MINI CARDS */
-    .mini-grid{display:flex;flex-wrap:wrap;gap:16px;padding-left:21px}
-    .mini-card{background:var(--card2);border-radius:12px;padding:16px 20px;flex:1 1 140px;border:1px solid var(--border);cursor:pointer;transition:border-color .15s}
-    .mini-card:hover{border-color:var(--gold)}
-    .mini-card.static{cursor:default}
-    .mini-card.static:hover{border-color:var(--border)}
-    .mini-card i{color:var(--gold);font-size:20px;display:block;margin-bottom:6px}
-    .mini-card span{display:block;font-weight:500;color:#eee;font-size:15px}
-    .mini-card small{color:var(--muted);font-size:13px}
+    .mini-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      padding-left: 22px;
+    }
+    .mini-card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 18px 22px;
+      flex: 1 1 140px;
+      border: 1px solid #e9eef3;
+      cursor: pointer;
+      transition: 0.15s;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+    }
+    .mini-card:hover { border-color: #e67e22; box-shadow: 0 8px 20px -8px rgba(230,126,34,0.15); }
+    .mini-card.static { cursor: default; }
+    .mini-card.static:hover { border-color: #e9eef3; box-shadow: none; }
+    .mini-card i { color: #e67e22; font-size: 22px; display: block; margin-bottom: 8px; }
+    .mini-card span { display: block; font-weight: 600; color: #1a2634; font-size: 15px; }
+    .mini-card small { color: #5d6f83; font-size: 13px; }
 
-    /* TASKS */
-    .task-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-    .t-id{color:var(--gold);font-weight:700;font-size:14px}
-    .t-badge{background:#0d1f0d;color:var(--green);font-size:12px;font-weight:600;padding:2px 8px;border-radius:10px;margin-left:8px}
-    .t-desc{color:#ccc;font-size:14px;margin:6px 0 2px}
-    .t-meta{color:var(--muted);font-size:12px}
-    .start-btn{background:var(--gold);color:#000;border:none;border-radius:8px;padding:10px 20px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:opacity .15s}
-    .start-btn:hover{opacity:.85}
-    .start-btn:disabled{opacity:.5;cursor:not-allowed}
-    .empty-msg{color:#555;font-size:14px;padding-left:21px}
+    /* tasks */
+    .task-card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 20px 24px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      border: 1px solid #e9eef3;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+    }
+    .t-id { color: #e67e22; font-weight: 700; font-size: 14px; }
+    .t-badge {
+      background: #e6f4ea;
+      color: #2a7a4a;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 12px;
+      border-radius: 40px;
+      margin-left: 8px;
+    }
+    .t-desc { color: #1a2634; font-size: 14px; margin: 4px 0 2px; }
+    .t-meta { color: #5d6f83; font-size: 13px; }
+    .start-btn {
+      background: #e67e22;
+      color: #fff;
+      border: none;
+      border-radius: 40px;
+      padding: 10px 24px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.15s;
+      box-shadow: 0 6px 16px -6px rgba(230,126,34,0.3);
+    }
+    .start-btn:hover { background: #cf6d17; transform: scale(0.97); }
+    .start-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .empty-msg { color: #8a9aa8; font-size: 14px; padding-left: 22px; }
 
-    /* STEP FLOW */
-    .step-ind{display:flex;align-items:center;margin-bottom:20px;padding-left:21px}
-    .step-c{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:#2e2e2e;color:#fff;flex-shrink:0;transition:background .3s}
-    .step-c.act{background:var(--gold);color:#000}
-    .step-c.done{background:var(--green)}
-    .step-ln{width:48px;height:2px;background:#2e2e2e;transition:background .3s}
-    .step-ln.done{background:var(--green)}
-    .step-lbl{margin-left:12px;color:var(--muted);font-size:13px}
-    .step-card{background:#1a1a1a;border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:12px;padding:28px;margin-left:21px}
-    .sc-hdr{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
-    .sc-tid{color:var(--gold);font-weight:700;font-size:14px}
-    .sc-rwd{color:var(--muted);font-size:13px}
-    .st-title{color:var(--text);font-size:16px;font-weight:600;margin-bottom:12px}
-    .instr-box{background:#111;border-radius:8px;padding:16px 20px;margin-bottom:24px;border-left:3px solid var(--gold)}
-    .instr-line{color:#ccc;font-size:14px;line-height:1.8}
-    .hint-box{background:#111;border-radius:8px;padding:14px 18px;margin-bottom:18px;border-left:3px solid var(--muted)}
-    .hint-txt{color:#ccc;font-size:14px}
-    .st-desc{color:var(--muted);font-size:14px;margin-bottom:20px}
-    .step-inp{width:100%;background:#111;border:1px solid #444;border-radius:8px;height:44px;padding:0 14px;color:var(--text);font-size:14px;outline:none;margin-bottom:24px;transition:border-color .15s}
-    .step-inp:focus{border-color:var(--gold)}
-    .btn-out{background:transparent;color:var(--gold);border:2px solid var(--gold);border-radius:8px;padding:10px 22px;font-weight:700;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s}
-    .btn-out:hover{opacity:.85}
-    .btn-out:disabled{opacity:.5;cursor:not-allowed}
-    .btn-gold{background:var(--gold);color:#000;border:none;border-radius:8px;padding:10px 22px;font-weight:700;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s}
-    .btn-gold:hover{opacity:.88}
-    .btn-gold:disabled{opacity:.5;cursor:not-allowed}
+    /* step flow */
+    .step-ind {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-left: 22px;
+    }
+    .step-c {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      background: #e9eef3;
+      color: #1a2634;
+      flex-shrink: 0;
+      transition: 0.2s;
+    }
+    .step-c.act { background: #e67e22; color: #fff; }
+    .step-c.done { background: #2a7a4a; color: #fff; }
+    .step-ln {
+      width: 48px;
+      height: 3px;
+      background: #e9eef3;
+      transition: 0.2s;
+    }
+    .step-ln.done { background: #2a7a4a; }
+    .step-lbl { margin-left: 12px; color: #5d6f83; font-size: 14px; }
+    .step-card {
+      background: #ffffff;
+      border-radius: 28px;
+      padding: 28px;
+      border: 1px solid #e9eef3;
+      margin-left: 22px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.02);
+    }
+    .sc-hdr {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #e9eef3;
+    }
+    .sc-tid { color: #e67e22; font-weight: 700; }
+    .sc-rwd { color: #5d6f83; font-size: 14px; }
+    .st-title { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+    .instr-box {
+      background: #f8faff;
+      border-radius: 20px;
+      padding: 18px 22px;
+      margin-bottom: 24px;
+      border-left: 5px solid #e67e22;
+    }
+    .instr-line { color: #1a2634; font-size: 15px; line-height: 1.8; }
+    .hint-box {
+      background: #f8faff;
+      border-radius: 20px;
+      padding: 16px 20px;
+      margin-bottom: 18px;
+      border-left: 5px solid #8a9aa8;
+    }
+    .hint-txt { color: #1a2634; font-size: 14px; }
+    .st-desc { color: #4a5a6e; font-size: 15px; margin-bottom: 20px; }
+    .step-inp {
+      width: 100%;
+      background: #f8faff;
+      border: 1.5px solid #e2e9f2;
+      border-radius: 16px;
+      height: 50px;
+      padding: 0 18px;
+      font-size: 15px;
+      outline: none;
+      transition: 0.15s;
+      margin-bottom: 24px;
+    }
+    .step-inp:focus { border-color: #e67e22; box-shadow: 0 0 0 4px rgba(230,126,34,0.08); }
+    .btn-out {
+      background: transparent;
+      color: #e67e22;
+      border: 2px solid #e67e22;
+      border-radius: 40px;
+      padding: 10px 28px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.15s;
+    }
+    .btn-out:hover { background: #e67e22; color: #fff; }
+    .btn-out:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-gold {
+      background: #e67e22;
+      color: #fff;
+      border: none;
+      border-radius: 40px;
+      padding: 12px 28px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.15s;
+      box-shadow: 0 8px 20px -6px rgba(230,126,34,0.3);
+    }
+    .btn-gold:hover { background: #cf6d17; transform: scale(0.97); }
+    .btn-gold:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* LOADING / RESULT */
-    .load-screen{background:#1a1a1a;border:1px solid var(--border);border-radius:12px;padding:64px 28px;text-align:center;margin-left:21px}
-    .load-ico{color:var(--gold);font-size:52px;margin-bottom:20px;display:block;animation:spin 1s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .load-title{color:var(--text);font-size:17px;font-weight:600}
-    .load-sub{color:var(--muted);font-size:13px;margin-top:8px}
-    .res-screen{background:#1a1a1a;border-radius:12px;padding:52px 28px;text-align:center;margin-left:21px}
-    .res-screen.ok{border:1px solid var(--green);border-top:3px solid var(--green)}
-    .res-screen.exp{border:1px solid var(--border);border-top:3px solid var(--gold)}
-    .res-ico{font-size:58px;margin-bottom:16px;display:block}
-    .res-title{color:#fff;font-size:22px;font-weight:700;margin-bottom:10px}
-    .res-pts{font-size:34px;font-weight:800;margin-bottom:6px}
-    .res-pts.green{color:var(--green)}
-    .res-pts.gold{color:var(--gold)}
-    .res-note{color:var(--muted);font-size:14px;margin-bottom:8px}
-    .res-note2{color:var(--muted);font-size:13px;margin-bottom:32px}
-    .btn-back{background:transparent;border:1px solid var(--border);border-radius:8px;padding:10px 24px;color:var(--muted);cursor:pointer;font-size:14px;display:inline-flex;align-items:center;gap:6px}
-    .btn-back:hover{border-color:var(--muted)}
+    /* loading / result */
+    .load-screen {
+      background: #ffffff;
+      border-radius: 28px;
+      padding: 64px 28px;
+      text-align: center;
+      margin-left: 22px;
+      border: 1px solid #e9eef3;
+    }
+    .load-ico { color: #e67e22; font-size: 48px; margin-bottom: 16px; display: block; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .load-title { font-weight: 600; font-size: 18px; }
+    .load-sub { color: #5d6f83; font-size: 14px; margin-top: 6px; }
+    .res-screen {
+      background: #ffffff;
+      border-radius: 28px;
+      padding: 48px 28px;
+      text-align: center;
+      margin-left: 22px;
+      border: 1px solid #e9eef3;
+    }
+    .res-screen.ok { border-top: 6px solid #2a7a4a; }
+    .res-screen.exp { border-top: 6px solid #e67e22; }
+    .res-ico { font-size: 56px; display: block; margin-bottom: 12px; }
+    .res-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .res-pts { font-size: 36px; font-weight: 800; margin-bottom: 6px; }
+    .res-pts.green { color: #2a7a4a; }
+    .res-pts.gold { color: #e67e22; }
+    .res-note { color: #4a5a6e; font-size: 14px; }
+    .res-note2 { color: #5d6f83; font-size: 14px; margin-bottom: 24px; }
+    .btn-back {
+      background: transparent;
+      border: 1px solid #d0d9e3;
+      border-radius: 40px;
+      padding: 10px 28px;
+      color: #4a5a6e;
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.15s;
+    }
+    .btn-back:hover { border-color: #e67e22; color: #e67e22; }
 
-    /* TABLE */
-    .tbl-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:10px}
-    table{width:100%;border-collapse:collapse}
-    th{background:#1a1a1a;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;padding:10px 12px;text-align:left}
-    td{padding:10px 12px;font-size:14px;color:var(--text);border-top:1px solid var(--border)}
-    tr:hover td{background:rgba(255,255,255,.02)}
-    .r1{color:#FFD700;font-weight:700}.r2{color:#C0C0C0;font-weight:700}.r3{color:#CD7F32;font-weight:700}.rn{color:var(--muted);font-weight:700}
-    .sb{padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600}
-    .sb-on{background:#0d1f0d;color:#4caf50}
-    .sb-off{background:#1f0d0d;color:var(--red)}
-    .you-star{color:var(--gold);font-weight:600}
+    /* table */
+    .tbl-wrap {
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid #e9eef3;
+      background: #fff;
+      margin-top: 8px;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      background: #f8faff;
+      color: #4a5a6e;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+      padding: 14px 16px;
+      text-align: left;
+    }
+    td {
+      padding: 12px 16px;
+      font-size: 14px;
+      color: #1a2634;
+      border-top: 1px solid #e9eef3;
+    }
+    tr:hover td { background: #fafcff; }
+    .r1 { color: #e6b800; font-weight: 700; }
+    .r2 { color: #9aa9b9; font-weight: 700; }
+    .r3 { color: #cd7f32; font-weight: 700; }
+    .rn { color: #5d6f83; font-weight: 700; }
+    .sb {
+      padding: 3px 14px;
+      border-radius: 40px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .sb-on { background: #e6f4ea; color: #2a7a4a; }
+    .sb-off { background: #fee9e7; color: #d14c4c; }
+    .you-star { color: #e67e22; font-weight: 700; }
 
-    /* REWARD CARDS */
-    .rew-grid{padding-left:21px;display:flex;flex-wrap:wrap;gap:14px}
-    .rew-wrap{flex:1 1 220px;max-width:340px}
-    .rew-hdr{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;transition:border-color .15s}
-    .rew-hdr:hover,.rew-hdr.open{border-color:var(--gold)}
-    .rew-hdr.open{border-radius:12px 12px 0 0}
-    .rew-icon{width:44px;height:44px;border-radius:10px;background:#2a2a1a;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .rew-icon i{color:var(--gold);font-size:20px}
-    .rew-name{font-weight:600;font-size:15px;color:var(--text);margin-bottom:3px}
-    .rew-cost-ok{color:var(--green);font-size:13px;font-weight:700}
-    .rew-cost-no{color:#f06060;font-size:13px;font-weight:700}
-    .rew-panel-confirm{background:#161616;border:1px solid var(--gold);border-top:none;border-radius:0 0 12px 12px;padding:20px 22px}
-    .rew-panel-lock{background:#161616;border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;padding:20px 22px;display:flex;flex-direction:column;gap:14px}
-    .rew-panel-revealed{background:#0d1f0d;border:1px solid var(--green);border-top:none;border-radius:0 0 12px 12px;padding:20px 22px}
-    .lock-circle{width:42px;height:42px;border-radius:50%;background:#2a1212;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px}
-    .lock-msg{color:#f06060;font-weight:700;font-size:14px;margin-bottom:4px}
-    .lock-sub{color:var(--muted);font-size:13px}
-    .lock-sub strong{color:var(--gold)}
-    .confirm-btn{background:var(--gold);color:#000;border:none;border-radius:8px;padding:10px 22px;font-weight:700;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s;width:100%;justify-content:center}
-    .confirm-btn:hover{opacity:.88}
-    .confirm-btn:disabled{opacity:.5;cursor:not-allowed}
-    .confirm-cost{color:var(--gold);font-weight:700;font-size:15px}
-    .confirm-warning{color:var(--muted);font-size:12px;margin-top:6px}
-    .rew-info-lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
-    .rew-code{display:inline-block;background:#111;color:var(--green);padding:8px 16px;border-radius:8px;font-size:17px;font-weight:700;font-family:monospace;letter-spacing:.08em;border:1px solid var(--border)}
-    .rew-bal-lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
-    .rew-bal-val{color:var(--green);font-weight:700;font-size:20px}
-    .rew-pair{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px}
-    .rew-status-ok{color:var(--green);font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px}
-    .rew-status-ok i{color:var(--green)}
+    /* rewards */
+    .rew-grid {
+      padding-left: 22px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .rew-wrap {
+      flex: 1 1 240px;
+      max-width: 340px;
+    }
+    .rew-hdr {
+      background: #fff;
+      border: 1px solid #e9eef3;
+      border-radius: 24px;
+      padding: 18px 20px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      transition: 0.15s;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+    }
+    .rew-hdr:hover, .rew-hdr.open { border-color: #e67e22; }
+    .rew-hdr.open { border-radius: 24px 24px 0 0; }
+    .rew-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      background: #fef6ed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .rew-icon i { color: #e67e22; font-size: 22px; }
+    .rew-name { font-weight: 600; font-size: 15px; color: #1a2634; }
+    .rew-cost-ok { color: #2a7a4a; font-weight: 700; }
+    .rew-cost-no { color: #d14c4c; font-weight: 700; }
+    .rew-panel-confirm {
+      background: #fafcff;
+      border: 1px solid #e67e22;
+      border-top: none;
+      border-radius: 0 0 24px 24px;
+      padding: 20px 22px;
+    }
+    .rew-panel-lock {
+      background: #fafcff;
+      border: 1px solid #e9eef3;
+      border-top: none;
+      border-radius: 0 0 24px 24px;
+      padding: 20px 22px;
+    }
+    .rew-panel-revealed {
+      background: #e6f4ea;
+      border: 1px solid #2a7a4a;
+      border-top: none;
+      border-radius: 0 0 24px 24px;
+      padding: 20px 22px;
+    }
+    .confirm-btn {
+      background: #e67e22;
+      color: #fff;
+      border: none;
+      border-radius: 40px;
+      padding: 12px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: 0.15s;
+      width: 100%;
+    }
+    .confirm-btn:hover { background: #cf6d17; }
+    .confirm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .confirm-cost { color: #e67e22; font-weight: 700; }
+    .confirm-warning { color: #5d6f83; font-size: 13px; margin-top: 8px; }
+    .rew-info-lbl { color: #5d6f83; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .rew-code {
+      background: #fff;
+      color: #2a7a4a;
+      padding: 8px 16px;
+      border-radius: 40px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: monospace;
+      border: 1px solid #e2e9f2;
+    }
+    .rew-bal-lbl { color: #5d6f83; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .rew-bal-val { color: #2a7a4a; font-weight: 700; font-size: 20px; }
+    .rew-pair { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .rew-status-ok { color: #2a7a4a; font-weight: 700; }
 
-    /* MODAL */
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:2000;padding:20px;backdrop-filter:blur(4px)}
-    .overlay.show{display:flex}
-    .modal-card{background:#1a1a1a;border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:14px;padding:32px;width:100%;max-width:400px;box-shadow:0 16px 64px rgba(0,0,0,.85)}
-    .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-    .modal-title{color:var(--text);font-size:18px;font-weight:700}
-    .modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;transition:color .15s}
-    .modal-close:hover{color:var(--text)}
-    .modal-desc{color:var(--muted);font-size:14px;margin-bottom:18px}
-    .promo-err{display:none;align-items:center;gap:8px;background:#2a1212;border:1px solid #5a2020;border-radius:8px;padding:10px 14px;margin-bottom:14px;color:var(--red);font-size:13px}
-    .promo-err.show{display:flex}
-    .modal-success{display:none;text-align:center;padding:24px 0 8px}
-    .modal-success.show{display:block}
-    .modal-default{display:block}
-    .modal-default.hidden{display:none}
-    .ms-ico{font-size:56px;color:var(--green);margin-bottom:18px;display:block}
-    .ms-title{color:#fff;font-size:20px;font-weight:700;margin-bottom:8px}
-    .ms-pts{color:var(--green);font-size:32px;font-weight:800;margin-bottom:6px}
-    .ms-note{color:var(--muted);font-size:13px;margin-bottom:28px}
-    .btn-clear{background:transparent;border:1px solid var(--border);border-radius:8px;padding:10px 28px;color:var(--muted);cursor:pointer;font-size:14px}
-    .btn-clear:hover{border-color:var(--muted)}
+    /* modal */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+    .overlay.show { display: flex; }
+    .modal-card {
+      background: #fff;
+      border-radius: 32px;
+      padding: 32px;
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid #e9eef3;
+      box-shadow: 0 32px 64px -24px rgba(0,0,0,0.15);
+    }
+    .modal-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .modal-title { font-size: 20px; font-weight: 700; color: #1a2634; }
+    .modal-close { background: none; border: none; color: #8a9aa8; cursor: pointer; font-size: 20px; }
+    .modal-close:hover { color: #1a2634; }
+    .modal-desc { color: #4a5a6e; font-size: 15px; margin-bottom: 18px; }
+    .promo-err {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: #fff0ee;
+      border: 1px solid #f5c2b7;
+      border-radius: 16px;
+      padding: 10px 16px;
+      margin-bottom: 14px;
+      color: #b33c2e;
+      font-size: 13px;
+    }
+    .promo-err.show { display: flex; }
+    .modal-success {
+      display: none;
+      text-align: center;
+      padding: 16px 0 4px;
+    }
+    .modal-success.show { display: block; }
+    .modal-default { display: block; }
+    .modal-default.hidden { display: none; }
+    .ms-ico { font-size: 56px; color: #2a7a4a; margin-bottom: 12px; display: block; }
+    .ms-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .ms-pts { color: #2a7a4a; font-size: 34px; font-weight: 800; margin-bottom: 6px; }
+    .ms-note { color: #5d6f83; font-size: 14px; margin-bottom: 24px; }
 
-    /* NOTIFICATION PERMISSION TOAST */
-    .notif-permission-toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a2a1a;border:1px solid var(--green);color:#eee;padding:14px 24px;border-radius:12px;font-size:14px;z-index:3000;display:none;max-width:400px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.6)}
-    .notif-permission-toast.show{display:block;animation:toastIn .3s ease}
-    .notif-permission-toast button{background:var(--gold);color:#000;border:none;border-radius:6px;padding:6px 16px;font-weight:700;cursor:pointer;margin-left:10px}
-    .notif-permission-toast button:hover{opacity:.85}
+    /* chat */
+    .chat-fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #e67e22;
+      border: none;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 32px -8px rgba(230,126,34,0.4);
+      z-index: 1000;
+      font-size: 24px;
+      color: #fff;
+      transition: 0.2s;
+    }
+    .chat-fab.show { display: flex; }
+    .chat-fab:hover { transform: scale(1.08); box-shadow: 0 16px 40px -8px rgba(230,126,34,0.5); }
+    .chat-fab .notif-dot {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 18px;
+      height: 18px;
+      background: #d14c4c;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      display: none;
+      animation: pulse 1.5s infinite;
+    }
+    .chat-fab .notif-dot.show { display: block; }
+    @keyframes pulse { 0%,100%{ transform: scale(1); } 50%{ transform: scale(1.25); } }
+    .chat-panel {
+      position: fixed;
+      bottom: 94px;
+      right: 24px;
+      width: 340px;
+      max-width: calc(100vw - 32px);
+      height: 500px;
+      background: #ffffff;
+      border-radius: 28px;
+      border: 1px solid #e9eef3;
+      box-shadow: 0 24px 64px -20px rgba(0,0,0,0.2);
+      display: none;
+      flex-direction: column;
+      z-index: 999;
+      overflow: hidden;
+    }
+    .chat-panel.open { display: flex; animation: chatIn 0.2s ease; }
+    @keyframes chatIn { from { opacity: 0; transform: translateY(16px) scale(0.96); } to { opacity: 1; transform: translateY(0); } }
+    .chat-hdr {
+      padding: 16px 18px;
+      border-bottom: 1px solid #e9eef3;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      background: #fafcff;
+    }
+    .chat-hdr-l { display: flex; align-items: center; gap: 10px; }
+    .chat-hdr-title { font-weight: 700; font-size: 16px; color: #1a2634; }
+    .chat-hdr-icon { color: #e67e22; }
+    .chat-close { background: none; border: none; color: #8a9aa8; cursor: pointer; font-size: 18px; }
+    .chat-close:hover { color: #1a2634; }
+    .banned-badge {
+      background: #fee9e7;
+      color: #d14c4c;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 12px;
+      border-radius: 40px;
+      display: none;
+    }
+    .banned-badge.show { display: inline-flex; align-items: center; gap: 4px; }
+    .chat-msgs {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      background: #fafcff;
+    }
+    .chat-msgs::-webkit-scrollbar { width: 5px; }
+    .chat-msgs::-webkit-scrollbar-thumb { background: #d0d9e3; border-radius: 10px; }
+    .chat-empty { color: #8a9aa8; text-align: center; margin-top: 40px; }
+    .chat-msg { display: flex; flex-direction: column; margin-bottom: 12px; }
+    .chat-msg.own { align-items: flex-end; }
+    .chat-msg.other { align-items: flex-start; }
+    .msg-uid { font-size: 11px; color: #5d6f83; font-weight: 600; margin-bottom: 4px; }
+    .chat-msg.own .msg-uid { color: #e67e22; }
+    .msg-bubble {
+      background: #f0f4fa;
+      border-radius: 16px 16px 16px 4px;
+      padding: 10px 16px;
+      max-width: 230px;
+      font-size: 14px;
+      color: #1a2634;
+      word-break: break-word;
+      line-height: 1.5;
+      border: 1px solid #e9eef3;
+    }
+    .chat-msg.own .msg-bubble {
+      background: #e67e22;
+      color: #fff;
+      border-color: #e67e22;
+      border-radius: 16px 16px 4px 16px;
+    }
+    .chat-inp-area {
+      padding: 12px 16px 16px;
+      border-top: 1px solid #e9eef3;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    .ban-err-msg {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background: #fff0ee;
+      border-radius: 40px;
+      padding: 6px 14px;
+      margin-bottom: 8px;
+      color: #d14c4c;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .ban-err-msg.show { display: flex; }
+    .chat-inp-row { display: flex; gap: 10px; }
+    .chat-inp {
+      flex: 1;
+      background: #f8faff;
+      border: 1.5px solid #e2e9f2;
+      border-radius: 40px;
+      height: 44px;
+      padding: 0 18px;
+      font-size: 14px;
+      outline: none;
+      transition: 0.15s;
+    }
+    .chat-inp:focus { border-color: #e67e22; }
+    .chat-inp.ban-inp { border-color: #d14c4c !important; }
+    .chat-send {
+      background: #e67e22;
+      border: none;
+      border-radius: 40px;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #fff;
+      font-size: 16px;
+      transition: 0.15s;
+      flex-shrink: 0;
+    }
+    .chat-send:hover { background: #cf6d17; }
+    .chat-send:disabled { opacity: 0.4; cursor: not-allowed; }
+    .chat-send.banned { background: #d0d9e3; color: #8a9aa8; }
 
-    /* AUDIO NOTIFICATION */
-    #notif-audio{display:none}
+    /* toast & misc */
+    .toast {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a2634;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 40px;
+      font-size: 14px;
+      z-index: 3000;
+      display: none;
+      white-space: nowrap;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+    .toast.show { display: block; animation: toastIn 0.2s ease; }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(12px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+    .notif-permission-toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border: 1px solid #e67e22;
+      color: #1a2634;
+      padding: 14px 24px;
+      border-radius: 40px;
+      font-size: 14px;
+      z-index: 3000;
+      display: none;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 16px 40px -12px rgba(0,0,0,0.1);
+    }
+    .notif-permission-toast.show { display: block; }
+    .notif-permission-toast button {
+      background: #e67e22;
+      color: #fff;
+      border: none;
+      border-radius: 40px;
+      padding: 6px 20px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    .notif-permission-toast button:hover { background: #cf6d17; }
 
-    /* CHAT */
-    .chat-fab{position:fixed;bottom:24px;right:24px;width:54px;height:54px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.55);z-index:1000;font-size:22px;color:#000;transition:transform .2s ease,box-shadow .2s ease}
-    .chat-fab.show{display:flex}
-    .chat-fab:hover{transform:scale(1.12);box-shadow:0 6px 28px rgba(212,160,23,.45)}
-    .chat-fab:active{transform:scale(.96)}
-    .chat-fab .notif-dot{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--red);border-radius:50%;border:2px solid #000;display:none;animation:pulse 1.5s ease-in-out infinite}
-    .chat-fab .notif-dot.show{display:block}
-    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
-    .chat-panel{position:fixed;bottom:90px;right:24px;width:330px;height:500px;background:#1a1a1a;border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:14px;display:none;flex-direction:column;box-shadow:0 10px 48px rgba(0,0,0,.75);z-index:999;overflow:hidden}
-    .chat-panel.open{display:flex;animation:chatIn .2s ease}
-    @keyframes chatIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
-    .chat-hdr{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-    .chat-hdr-l{display:flex;align-items:center;gap:8px}
-    .chat-hdr-title{color:var(--text);font-weight:700;font-size:14px}
-    .chat-hdr-icon{color:var(--gold);font-size:15px}
-    .chat-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;transition:color .15s}
-    .chat-close:hover{color:var(--text)}
-    .banned-badge{background:#2a1212;color:var(--red);font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;display:none}
-    .banned-badge.show{display:inline-flex;align-items:center;gap:4px}
-    .chat-msgs{flex:1;overflow-y:auto;padding:12px}
-    .chat-msgs::-webkit-scrollbar{width:4px}
-    .chat-msgs::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
-    .chat-empty{color:var(--muted);font-size:13px;text-align:center;margin-top:40px}
-    .chat-msg{display:flex;flex-direction:column;margin-bottom:10px}
-    .chat-msg.own{align-items:flex-end}
-    .chat-msg.other{align-items:flex-start}
-    .msg-uid{font-size:10px;color:var(--muted);margin-bottom:3px;font-weight:600}
-    .chat-msg.own .msg-uid{color:var(--gold)}
-    .msg-bubble{background:#242424;border:1px solid var(--border);border-radius:10px 10px 10px 2px;padding:8px 12px;max-width:230px;font-size:13px;color:var(--text);word-break:break-word;line-height:1.5}
-    .chat-msg.own .msg-bubble{background:#2a1f00;border-color:#4a3600;border-radius:10px 10px 2px 10px;color:var(--gold)}
-    .chat-inp-area{padding:10px 12px 12px;border-top:1px solid var(--border);flex-shrink:0}
-    .ban-err-msg{display:none;align-items:center;gap:6px;background:#2a1212;border:1px solid #5a2020;border-radius:6px;padding:6px 10px;margin-bottom:8px;color:var(--red);font-size:12px;font-weight:700}
-    .ban-err-msg.show{display:flex}
-    .chat-inp-row{display:flex;gap:8px}
-    .chat-inp{flex:1;background:#111;border:1px solid #444;border-radius:8px;height:38px;padding:0 12px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s}
-    .chat-inp:focus{border-color:var(--gold)}
-    .chat-inp.ban-inp{border-color:var(--red)!important;color:#666}
-    .chat-send{background:var(--gold);border:none;border-radius:8px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:14px;color:#000;transition:opacity .15s,background .15s}
-    .chat-send:disabled{opacity:.45;cursor:default}
-    .chat-send.banned{background:#2a2a2a;color:#555;cursor:not-allowed;opacity:1}
-
-    /* TOAST */
-    .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#2a1212;border:1px solid #5a2020;color:var(--red);padding:10px 20px;border-radius:8px;font-size:13px;z-index:3000;display:none;white-space:nowrap}
-    .toast.show{display:block;animation:toastIn .2s ease}
-    @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-
-    /* RESPONSIVE */
-    @media(max-width:620px){
-      .top-bar{flex-direction:column;align-items:center;gap:8px;padding:8px}
-      .nav{flex-direction:column;padding:6px 12px;min-height:auto}
-      .nav-left{justify-content:center}
-      .nav-tab{font-size:14px;padding:10px 8px}
-      .nav-right{justify-content:center}
-      .page-content{padding:16px 12px}
-      .chat-panel{width:calc(100vw - 16px);right:8px}
-      .modal-card{padding:24px 20px}
-      .step-card{margin-left:0;padding:20px}
-      .step-ind{padding-left:0}
-      .stat-grid,.mini-grid{padding-left:0}
-      .rew-grid{padding-left:0}
-      .notif-permission-toast{width:calc(100% - 32px);bottom:80px;padding:12px 16px;font-size:13px}
+    /* responsive */
+    @media (max-width: 640px) {
+      .top-bar { flex-direction: column; align-items: stretch; gap: 6px; padding: 12px 16px; }
+      .pts-row { justify-content: space-between; }
+      .nav { flex-direction: column; padding: 6px 8px; min-height: auto; }
+      .nav-left { justify-content: center; flex-wrap: wrap; gap: 2px; }
+      .nav-tab { font-size: 13px; padding: 12px 10px; }
+      .nav-right { justify-content: center; }
+      .page-content { padding: 16px 12px; }
+      .stat-grid, .mini-grid, .rew-grid { padding-left: 0; }
+      .step-card, .load-screen, .res-screen { margin-left: 0; padding: 20px; }
+      .step-ind { padding-left: 0; flex-wrap: wrap; }
+      .step-ln { width: 24px; }
+      .chat-panel { width: calc(100vw - 16px); right: 8px; bottom: 80px; height: 460px; }
+      .modal-card { padding: 24px 20px; }
+      .notif-permission-toast { width: calc(100% - 32px); bottom: 80px; }
+    }
+    @media (max-width: 400px) {
+      .nav-tab { font-size: 12px; padding: 8px 6px; }
+      .stat-card { flex: 1 1 80px; padding: 12px 16px; }
     }
   </style>
 </head>
 <body>
-
-<!-- ========== LOGIN ========== -->
+<!-- LOGIN -->
 <div id="login-screen">
-  <div class="login-logo"><span>ⓡ</span>eedem<span style="color:orange">2</span></div>
+  <div class="login-logo"><span>ⓡ</span>eedem<span style="color:#e67e22;">2</span></div>
   <div class="login-card">
-    <div class="err-box hidden" id="login-err">
-      <i class="fas fa-exclamation-circle"></i>
-      <span id="login-err-msg"></span>
-    </div>
+    <div class="err-box hidden" id="login-err"><i class="fas fa-exclamation-circle"></i><span id="login-err-msg"></span></div>
     <label class="lf-label" for="li-uid">User ID</label>
     <input class="form-input" type="text" id="li-uid" placeholder="e.g. U001" autocomplete="username">
     <label class="lf-label" for="li-pw">Password</label>
     <input class="form-input" type="password" id="li-pw" placeholder="••••••••" autocomplete="current-password" style="margin-bottom:24px">
-    <button class="login-btn" id="login-btn" onclick="doLogin()">
-      <span id="login-btn-txt">Sign In</span>
-    </button>
-    <button id="test-btn" onclick="testConnection()" style="width:100%;margin-top:10px;background:transparent;border:1px solid #333;border-radius:8px;height:38px;color:#888;font-size:13px;cursor:pointer;transition:border-color .15s,color .15s" onmouseover="this.style.borderColor='#d4a017';this.style.color='#d4a017'" onmouseout="this.style.borderColor='#333';this.style.color='#888'">
+    <button class="login-btn" id="login-btn" onclick="doLogin()"><span id="login-btn-txt">Sign In</span></button>
+    <button id="test-btn" onclick="testConnection()" style="width:100%;margin-top:14px;background:transparent;border:1px solid #d0d9e3;border-radius:40px;height:44px;color:#5d6f83;font-size:13px;cursor:pointer;transition:0.15s;" onmouseover="this.style.borderColor='#e67e22';this.style.color='#e67e22'" onmouseout="this.style.borderColor='#d0d9e3';this.style.color='#5d6f83'">
       <span id="test-btn-txt">Test Connection</span>
     </button>
   </div>
 </div>
 
-<!-- ========== DASHBOARD ========== -->
+<!-- DASHBOARD -->
 <div id="dashboard">
   <div class="top-bar">
-    <div class="logo"><span>ⓡ</span>eedem<span style="color:orange">2</span></div>
+    <div class="logo"><span>ⓡ</span>eedem<span style="color:#e67e22;">2</span></div>
     <div class="pts-row">
-      <span>
-        <span class="onhold-lbl">On Hold: </span>
-        <span class="onhold-amt" id="tb-onhold">0.00</span>
-        <span class="onhold-lbl"> PTS</span>
-        <span class="countdown" id="tb-countdown" style="display:none"></span>
-      </span>
+      <span><span class="onhold-lbl">On Hold:</span> <span class="onhold-amt" id="tb-onhold">0.00</span> <span class="onhold-lbl">PTS</span><span class="countdown" id="tb-countdown" style="display:none"></span></span>
       <span class="pts-main" id="tb-pts-wrap"><span id="tb-pts">0.00</span> <small>PTS</small></span>
     </div>
   </div>
 
   <nav class="nav">
     <div class="nav-left">
-      <button class="nav-tab active" data-tab="home"   onclick="switchTab('home')"><i class="fas fa-home"></i></button>
-      <button class="nav-tab"        data-tab="earn"   onclick="switchTab('earn')"><i class="fas fa-coins"></i> Earn</button>
-      <button class="nav-tab"        data-tab="redeem" onclick="switchTab('redeem')"><i class="fas fa-gift"></i> Redeem</button>
-      <button class="nav-tab"        data-tab="win"    onclick="switchTab('win')"><i class="fas fa-trophy"></i> Win</button>
-      <button class="nav-tab"        data-tab="forums" onclick="switchTab('forums')"><i class="fas fa-comments"></i> Forums</button>
-      <button class="nav-tab"        data-tab="faq"    onclick="switchTab('faq')"><i class="fas fa-question-circle"></i> FAQ</button>
+      <button class="nav-tab active" data-tab="home" onclick="switchTab('home')"><i class="fas fa-home"></i></button>
+      <button class="nav-tab" data-tab="earn" onclick="switchTab('earn')"><i class="fas fa-coins"></i> Earn</button>
+      <button class="nav-tab" data-tab="redeem" onclick="switchTab('redeem')"><i class="fas fa-gift"></i> Redeem</button>
+      <button class="nav-tab" data-tab="win" onclick="switchTab('win')"><i class="fas fa-trophy"></i> Win</button>
+      <button class="nav-tab" data-tab="forums" onclick="switchTab('forums')"><i class="fas fa-comments"></i> Forums</button>
+      <button class="nav-tab" data-tab="faq" onclick="switchTab('faq')"><i class="fas fa-question-circle"></i> FAQ</button>
     </div>
     <div class="nav-right">
       <button class="icon-btn" title="Redeem Promo Code" onclick="openPromo()"><i class="fas fa-ticket-alt"></i></button>
@@ -332,205 +1043,98 @@
       <div class="user-chip" id="user-chip" onclick="toggleUserDD()">
         <div class="avatar"><i class="fas fa-headphones"></i></div>
         <span id="chip-name">User</span>
-        <div class="user-dd" id="user-dd">
-          <button class="dd-item" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Log Out</button>
-        </div>
+        <div class="user-dd" id="user-dd"><button class="dd-item" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Log Out</button></div>
       </div>
     </div>
   </nav>
 
   <main class="page-content">
-
-    <!-- HOME -->
     <div id="tab-home" class="tab-sec active">
       <h2 class="sec-title"><i class="fas fa-home"></i> Home</h2>
-      <p class="sec-desc">WELCOME TO REDEEM2</p>
+      <p class="sec-desc">Welcome back! Here's your snapshot.</p>
       <div class="stat-grid" id="home-stats"></div>
       <div class="mini-grid">
-        <div class="mini-card" onclick="switchTab('earn')"><i class="fas fa-check-circle"></i><span>Do tasks</span><small>Everyday</small></div>
-        <div class="mini-card" onclick="openPromo()"><i class="fas fa-star"></i><span>Redeem Bonus Codes</span><small>Once a week</small></div>
-        <div class="mini-card" onclick="switchTab('redeem')"><i class="fas fa-clock"></i><span>Redeem Rewards</span><small>Once a day limit</small></div>
+        <div class="mini-card" onclick="switchTab('earn')"><i class="fas fa-check-circle"></i><span>Daily Tasks</span><small>Earn PTS</small></div>
+        <div class="mini-card" onclick="openPromo()"><i class="fas fa-star"></i><span>Promo Codes</span><small>Bonus</small></div>
+        <div class="mini-card" onclick="switchTab('redeem')"><i class="fas fa-clock"></i><span>Redeem</span><small>Rewards</small></div>
       </div>
     </div>
 
-    <!-- EARN -->
-    <div id="tab-earn" class="tab-sec">
-      <h2 class="sec-title"><i class="fas fa-coins"></i> Earn</h2>
-      <p class="sec-desc">Select a task below to get started.</p>
-      <div id="earn-container"></div>
-    </div>
-
-    <!-- REDEEM -->
-    <div id="tab-redeem" class="tab-sec">
-      <h2 class="sec-title"><i class="fas fa-gift"></i> Redeem</h2>
-      <p class="sec-desc">Click a reward to reveal it. You must confirm to redeem.</p>
-      <div class="rew-grid" id="rew-grid"></div>
-    </div>
-
-    <!-- WIN -->
+    <div id="tab-earn" class="tab-sec"><h2 class="sec-title"><i class="fas fa-coins"></i> Earn</h2><p class="sec-desc">Pick a task and verify.</p><div id="earn-container"></div></div>
+    <div id="tab-redeem" class="tab-sec"><h2 class="sec-title"><i class="fas fa-gift"></i> Redeem</h2><p class="sec-desc">Click a reward to reveal & confirm.</p><div class="rew-grid" id="rew-grid"></div></div>
     <div id="tab-win" class="tab-sec">
-      <h2 class="sec-title"><i class="fas fa-trophy"></i> Win</h2>
-      <p class="sec-desc">Sweepstakes, contests, draws.</p>
+      <h2 class="sec-title"><i class="fas fa-trophy"></i> Win</h2><p class="sec-desc">Compete and climb the leaderboard.</p>
       <div class="mini-grid" style="margin-bottom:24px">
-        <div class="mini-card static"><i class="fas fa-medal"></i><span>Weekly Draw</span><small>1 entry left</small></div>
-        <div class="mini-card static"><i class="fas fa-dice"></i><span>Lucky Spin</span><small>cost: 20 PTS</small></div>
-        <div class="mini-card static"><i class="fas fa-crown"></i><span>Leaderboard</span><small>#7 this month</small></div>
+        <div class="mini-card static"><i class="fas fa-medal"></i><span>Weekly Draw</span><small>1 entry</small></div>
+        <div class="mini-card static"><i class="fas fa-dice"></i><span>Lucky Spin</span><small>20 PTS</small></div>
+        <div class="mini-card static"><i class="fas fa-crown"></i><span>Leaderboard</span><small>#7</small></div>
       </div>
-      <div class="sub-head" style="padding-left:21px">Leaderboard</div>
-      <div id="leaderboard-wrap" style="padding-left:21px"></div>
-      <p style="margin-top:12px;padding-left:21px;color:var(--muted);font-size:14px">🏁 New contest tomorrow</p>
+      <div class="sub-head" style="padding-left:22px">Leaderboard</div>
+      <div id="leaderboard-wrap" style="padding-left:22px"></div>
+      <p style="margin-top:16px;padding-left:22px;color:#5d6f83;font-size:14px;">🏁 New contest tomorrow</p>
     </div>
-
-    <!-- FORUMS -->
-    <div id="tab-forums" class="tab-sec">
-      <h2 class="sec-title"><i class="fas fa-comments"></i> Forums</h2>
-      <p class="sec-desc">Discuss strategies, share tips.</p>
-      <div class="mini-grid">
-        <div class="mini-card static"><i class="fas fa-bullhorn"></i><span>Announcements</span><small>2 new</small></div>
-        <div class="mini-card static"><i class="fas fa-lightbulb"></i><span>Tips &amp; Tricks</span><small>hot topic</small></div>
-        <div class="mini-card static"><i class="fas fa-users"></i><span>General Chat</span><small>12 online</small></div>
-      </div>
-      <p style="margin-top:12px;padding-left:21px;color:var(--green);font-size:14px">↩ 4 unread replies</p>
-    </div>
-
-    <!-- FAQ -->
-    <div id="tab-faq" class="tab-sec">
-      <h2 class="sec-title"><i class="fas fa-question-circle"></i> FAQ</h2>
-      <p class="sec-desc">Frequently asked questions.</p>
-      <div class="mini-grid">
-        <div class="mini-card" onclick="switchTab('earn')"><i class="fas fa-coins"></i><span>How to earn?</span><small>see Earn</small></div>
-        <div class="mini-card static"><i class="fas fa-exchange-alt"></i><span>Redemption rules</span><small>min. 50 PTS</small></div>
-        <div class="mini-card static"><i class="fas fa-clock"></i><span>Points expire?</span><small>12 months</small></div>
-        <div class="mini-card static"><i class="fas fa-user-cog"></i><span>Account help</span><small>contact support</small></div>
-      </div>
-      <p style="margin-top:12px;padding-left:21px;color:#777;font-size:14px">📖 Full FAQ in help center.</p>
-    </div>
-
+    <div id="tab-forums" class="tab-sec"><h2 class="sec-title"><i class="fas fa-comments"></i> Forums</h2><p class="sec-desc">Chat & strategy.</p><div class="mini-grid"><div class="mini-card static"><i class="fas fa-bullhorn"></i><span>Announcements</span><small>2 new</small></div><div class="mini-card static"><i class="fas fa-lightbulb"></i><span>Tips</span><small>hot</small></div><div class="mini-card static"><i class="fas fa-users"></i><span>General</span><small>12 online</small></div></div><p style="margin-top:12px;padding-left:22px;color:#2a7a4a;">↩ 4 unread replies</p></div>
+    <div id="tab-faq" class="tab-sec"><h2 class="sec-title"><i class="fas fa-question-circle"></i> FAQ</h2><p class="sec-desc">Quick answers.</p><div class="mini-grid"><div class="mini-card" onclick="switchTab('earn')"><i class="fas fa-coins"></i><span>How to earn?</span><small>see Earn</small></div><div class="mini-card static"><i class="fas fa-exchange-alt"></i><span>Redemption</span><small>min 50 PTS</small></div><div class="mini-card static"><i class="fas fa-clock"></i><span>Expiry</span><small>12 months</small></div></div></div>
   </main>
 </div>
 
-<!-- ========== PROMO MODAL ========== -->
+<!-- PROMO MODAL -->
 <div class="overlay" id="promo-overlay" onclick="closePromoOnBg(event)">
   <div class="modal-card">
-    <div class="modal-hdr">
-      <span class="modal-title">Redeem Promo Code</span>
-      <button class="modal-close" onclick="closePromo()"><i class="fas fa-times"></i></button>
-    </div>
+    <div class="modal-hdr"><span class="modal-title">Redeem Promo Code</span><button class="modal-close" onclick="closePromo()"><i class="fas fa-times"></i></button></div>
     <div class="modal-default" id="promo-default">
-      <p class="modal-desc">Paste your promo code below to receive bonus points.</p>
-      <input class="form-input" type="text" id="promo-input" placeholder="Enter promo code" style="font-family:monospace;letter-spacing:.04em;margin-bottom:12px">
+      <p class="modal-desc">Enter your promo code for bonus points.</p>
+      <input class="form-input" type="text" id="promo-input" placeholder="Enter promo code" style="font-family:monospace;margin-bottom:12px;">
       <div class="promo-err" id="promo-err"><i class="fas fa-times-circle"></i><span id="promo-err-txt"></span></div>
-      <button class="btn-gold" id="promo-submit-btn" onclick="submitPromo()" style="width:100%;justify-content:center;height:46px;font-size:15px">
-        <span id="promo-btn-txt">Redeem Code</span>
-      </button>
+      <button class="btn-gold" id="promo-submit-btn" onclick="submitPromo()" style="width:100%;justify-content:center;height:50px;font-size:15px;"><span id="promo-btn-txt">Redeem Code</span></button>
     </div>
-    <div class="modal-success" id="promo-success">
-      <i class="fas fa-check-circle ms-ico"></i>
-      <div class="ms-title">Code Redeemed!</div>
-      <div class="ms-pts" id="ms-pts-val">+2 PTS</div>
-      <p class="ms-note">Added to your On Hold balance. Releases in 1 hour.</p>
-      <button class="btn-clear" onclick="closePromo()">Close</button>
-    </div>
+    <div class="modal-success" id="promo-success"><i class="fas fa-check-circle ms-ico"></i><div class="ms-title">Code Redeemed!</div><div class="ms-pts" id="ms-pts-val">+2 PTS</div><p class="ms-note">Added to On Hold. Releases in 1 hour.</p><button class="btn-back" onclick="closePromo()" style="border:1px solid #d0d9e3;">Close</button></div>
   </div>
 </div>
 
-<!-- ========== NOTIFICATION PERMISSION TOAST ========== -->
-<div class="notif-permission-toast" id="notif-permission-toast">
-  <i class="fas fa-bell" style="color:var(--gold);margin-right:8px;"></i>
-  Enable notifications to get alerted when you receive new messages.
-  <button onclick="requestNotificationPermission()">Enable</button>
-  <button onclick="dismissNotificationToast()" style="background:transparent;color:var(--muted);margin-left:4px;font-size:12px;">Later</button>
-</div>
+<!-- NOTIFICATION TOAST -->
+<div class="notif-permission-toast" id="notif-permission-toast"><i class="fas fa-bell" style="color:#e67e22;margin-right:8px;"></i> Enable notifications for alerts. <button onclick="requestNotificationPermission()">Enable</button><button onclick="dismissNotificationToast()" style="background:transparent;color:#8a9aa8;margin-left:6px;">Later</button></div>
 
-<!-- ========== CHAT ========== -->
-<button class="chat-fab" id="chat-fab" onclick="toggleChat()" title="Open Chat">
-  <i class="fas fa-comments" id="chat-fab-icon"></i>
-  <span class="notif-dot" id="chat-notif-dot"></span>
-</button>
-
+<!-- CHAT -->
+<button class="chat-fab" id="chat-fab" onclick="toggleChat()"><i class="fas fa-comments" id="chat-fab-icon"></i><span class="notif-dot" id="chat-notif-dot"></span></button>
 <div class="chat-panel" id="chat-panel">
-  <div class="chat-hdr">
-    <div class="chat-hdr-l">
-      <i class="fas fa-comments chat-hdr-icon"></i>
-      <span class="chat-hdr-title">Live Chat</span>
-      <span class="banned-badge" id="banned-badge"><i class="fas fa-lock"></i> BANNED</span>
-    </div>
-    <button class="chat-close" onclick="toggleChat()"><i class="fas fa-times"></i></button>
-  </div>
+  <div class="chat-hdr"><div class="chat-hdr-l"><i class="fas fa-comments chat-hdr-icon"></i><span class="chat-hdr-title">Live Chat</span><span class="banned-badge" id="banned-badge"><i class="fas fa-lock"></i> BANNED</span></div><button class="chat-close" onclick="toggleChat()"><i class="fas fa-times"></i></button></div>
   <div class="chat-msgs" id="chat-msgs"><p class="chat-empty">Loading…</p></div>
-  <div class="chat-inp-area">
-    <div class="ban-err-msg" id="ban-err-msg"><i class="fas fa-lock"></i> Banned — you cannot send messages.</div>
-    <div class="chat-inp-row">
-      <input class="chat-inp" type="text" id="chat-inp" placeholder="Type a message…" onkeydown="chatEnter(event)" oninput="onChatInput()">
-      <button class="chat-send" id="chat-send-btn" onclick="sendChatMsg()" title="Send">
-        <i class="fas fa-paper-plane"></i>
-      </button>
-    </div>
-  </div>
+  <div class="chat-inp-area"><div class="ban-err-msg" id="ban-err-msg"><i class="fas fa-lock"></i> Banned — cannot send.</div><div class="chat-inp-row"><input class="chat-inp" type="text" id="chat-inp" placeholder="Type a message…" onkeydown="chatEnter(event)" oninput="onChatInput()"><button class="chat-send" id="chat-send-btn" onclick="sendChatMsg()"><i class="fas fa-paper-plane"></i></button></div></div>
 </div>
-
 <div class="toast" id="api-toast"></div>
 
 <script>
-// ============================================================
-//  ▶  APPS SCRIPT URL – REPLACE WITH YOUR DEPLOYED URL
-// ============================================================
+// =============================================================
+//  ▶  APP SCRIPT URL – REPLACE WITH YOUR DEPLOYED URL
+// =============================================================
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMX3Sg8TPBeQrBA-YiCASGC_pUXCLx-4nUM0dGxFXa0vy3v8K9hRxkRhEygliaE6ey/exec';
-// ============================================================
+// =============================================================
 
-// ── CORE API ─────────────────────────────────────────────────
 function api(action, params = {}) {
   return new Promise((resolve, reject) => {
     try {
-      const callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-      
+      const callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
       const url = new URL(APP_SCRIPT_URL);
       url.searchParams.append('action', action);
       url.searchParams.append('callback', callbackName);
-      
       for (const [key, val] of Object.entries(params)) {
-        if (val !== undefined && val !== null) {
-          url.searchParams.append(key, String(val));
-        }
+        if (val !== undefined && val !== null) url.searchParams.append(key, String(val));
       }
-      
       const script = document.createElement('script');
       script.src = url.toString();
       script.async = true;
-      
-      const timeout = setTimeout(() => {
-        cleanup();
-        reject(new Error('Request timeout'));
-      }, 15000);
-      
-      window[callbackName] = function(data) {
-        cleanup();
-        resolve(data);
-      };
-      
-      function cleanup() {
-        clearTimeout(timeout);
-        delete window[callbackName];
-        if (script.parentNode) {
-          script.parentNode.removeChild(script);
-        }
-      }
-      
-      script.onerror = function() {
-        cleanup();
-        reject(new Error('Network error - check CORS and deployment settings'));
-      };
-      
+      const timeout = setTimeout(() => { cleanup(); reject(new Error('Request timeout')); }, 15000);
+      window[callbackName] = function(data) { cleanup(); resolve(data); };
+      function cleanup() { clearTimeout(timeout); delete window[callbackName]; if (script.parentNode) script.parentNode.removeChild(script); }
+      script.onerror = function() { cleanup(); reject(new Error('Network error')); };
       document.head.appendChild(script);
-      
-    } catch (err) {
-      reject(err);
-    }
+    } catch (err) { reject(err); }
   });
 }
 
 function showToast(msg) {
-  const t = $('api-toast');
+  const t = document.getElementById('api-toast');
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(t._tid);
@@ -556,670 +1160,355 @@ let S = {
   notificationPermission: 'default'
 };
 
-// ── UTILS ────────────────────────────────────────────────────
-const $   = id => document.getElementById(id);
-const esc = s  => {
-  if (s === undefined || s === null) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-};
-const fmt = n  => {
-  if (n === undefined || n === null) return '0.00';
-  return parseFloat(n || 0).toFixed(2);
-};
-const norm = s => {
-  if (s === undefined || s === null) return '';
-  return String(s).trim().toLowerCase().replace(/\/+$/, '').replace(/\s+/g, ' ');
-};
+const $ = id => document.getElementById(id);
+const esc = s => { if (s === undefined || s === null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+const fmt = n => { if (n === undefined || n === null) return '0.00'; return parseFloat(n || 0).toFixed(2); };
+const norm = s => { if (s === undefined || s === null) return ''; return String(s).trim().toLowerCase().replace(/\/+$/, '').replace(/\s+/g, ' '); };
 
 // ── NOTIFICATIONS ────────────────────────────────────────────
-function checkNotificationSupport() {
-  return 'Notification' in window;
-}
-
+function checkNotificationSupport() { return 'Notification' in window; }
 async function requestNotificationPermission() {
-  if (!checkNotificationSupport()) {
-    showToast('Notifications are not supported on this browser.');
-    return;
-  }
+  if (!checkNotificationSupport()) { showToast('Notifications not supported.'); return; }
   try {
     const permission = await Notification.requestPermission();
     S.notificationPermission = permission;
     localStorage.setItem('r2_notification_permission', permission);
-    if (permission === 'granted') {
-      showToast('🔔 Notifications enabled!');
-      $('notif-permission-toast').classList.remove('show');
-      setTimeout(() => {
-        sendBrowserNotification('✅ Notifications Enabled', 'You will now receive alerts.');
-      }, 500);
-    } else if (permission === 'denied') {
-      showToast('❌ Notification permission denied.');
-    }
-  } catch (err) {
-    showToast('Error: ' + err.message);
-  }
+    if (permission === 'granted') { showToast('🔔 Notifications enabled!'); document.getElementById('notif-permission-toast').classList.remove('show'); sendBrowserNotification('✅ Enabled', 'You will receive alerts.'); }
+    else if (permission === 'denied') showToast('❌ Notification denied.');
+  } catch (err) { showToast('Error: ' + err.message); }
 }
-
 function sendBrowserNotification(title, body, tag) {
   if (!checkNotificationSupport() || Notification.permission !== 'granted') return false;
   try {
-    const notification = new Notification(title || 'Redeem2', {
-      body: body || '',
-      icon: '🔔',
-      tag: tag || 'notif-' + Date.now(),
-      requireInteraction: true,
-      vibrate: [200, 100, 200]
-    });
-    notification.onclick = function(e) {
-      e.preventDefault();
-      window.focus();
-      notification.close();
-    };
+    const notification = new Notification(title || 'Redeem2', { body: body || '', tag: tag || 'notif-'+Date.now(), requireInteraction: true, vibrate: [200,100,200] });
+    notification.onclick = (e) => { e.preventDefault(); window.focus(); notification.close(); };
     setTimeout(() => { try { notification.close(); } catch(e) {} }, 8000);
     return true;
   } catch (err) { return false; }
 }
-
 function checkAndRequestNotification() {
   const saved = localStorage.getItem('r2_notification_permission');
   if (saved) S.notificationPermission = saved;
   else if (checkNotificationSupport()) S.notificationPermission = Notification.permission;
   if (checkNotificationSupport() && Notification.permission === 'default' && !localStorage.getItem('r2_notification_dismissed')) {
-    setTimeout(() => $('notif-permission-toast').classList.add('show'), 3000);
+    setTimeout(() => document.getElementById('notif-permission-toast').classList.add('show'), 3000);
   }
 }
-
-function dismissNotificationToast() {
-  $('notif-permission-toast').classList.remove('show');
-  localStorage.setItem('r2_notification_dismissed', 'true');
-}
-
-function updateChatNotificationDot(show) {
-  const dot = $('chat-notif-dot');
-  show && S.unreadCount > 0 ? dot.classList.add('show') : dot.classList.remove('show');
-}
+function dismissNotificationToast() { document.getElementById('notif-permission-toast').classList.remove('show'); localStorage.setItem('r2_notification_dismissed','true'); }
+function updateChatNotificationDot(show) { const dot = document.getElementById('chat-notif-dot'); show && S.unreadCount > 0 ? dot.classList.add('show') : dot.classList.remove('show'); }
 
 // ── AUTH ─────────────────────────────────────────────────────
 async function doLogin() {
-  const uid = $('li-uid').value.trim();
-  const pw  = $('li-pw').value;
-  if (!uid || !pw) { showLoginErr('Please enter your User ID and password.'); return; }
-
-  $('login-btn').disabled = true;
-  $('login-btn-txt').textContent = 'Signing in…';
+  const uid = document.getElementById('li-uid').value.trim();
+  const pw  = document.getElementById('li-pw').value;
+  if (!uid || !pw) { showLoginErr('Please enter User ID and password.'); return; }
+  document.getElementById('login-btn').disabled = true;
+  document.getElementById('login-btn-txt').textContent = 'Signing in…';
   hideLoginErr();
-
   try {
     const result = await api('login', { userid: uid, password: pw });
-    $('login-btn').disabled = false;
-    $('login-btn-txt').textContent = 'Sign In';
-    if (!result.success || !result.user) {
-      showLoginErr(result.error || 'Login failed. Try again.');
-      return;
-    }
+    document.getElementById('login-btn').disabled = false;
+    document.getElementById('login-btn-txt').textContent = 'Sign In';
+    if (!result.success || !result.user) { showLoginErr(result.error || 'Login failed.'); return; }
     S.user = { ...result.user };
     localStorage.setItem('r2_userid', S.user.userid);
     enterDashboard();
     await loadAllData();
     setTimeout(checkAndRequestNotification, 1000);
   } catch (err) {
-    $('login-btn').disabled = false;
-    $('login-btn-txt').textContent = 'Sign In';
+    document.getElementById('login-btn').disabled = false;
+    document.getElementById('login-btn-txt').textContent = 'Sign In';
     showLoginErr('Connection error: ' + err.message);
   }
 }
-
-function showLoginErr(msg) { 
-  const err = $('login-err');
-  err.classList.remove('hidden');
-  $('login-err-msg').textContent = msg; 
-}
-function hideLoginErr() { $('login-err').classList.add('hidden'); }
-
+function showLoginErr(msg) { const err = document.getElementById('login-err'); err.classList.remove('hidden'); document.getElementById('login-err-msg').textContent = msg; }
+function hideLoginErr() { document.getElementById('login-err').classList.add('hidden'); }
 async function testConnection() {
-  const btn = $('test-btn'), txt = $('test-btn-txt');
-  btn.disabled = true;
-  txt.textContent = 'Testing…';
-  hideLoginErr();
+  const btn = document.getElementById('test-btn'), txt = document.getElementById('test-btn-txt');
+  btn.disabled = true; txt.textContent = 'Testing…'; hideLoginErr();
   try {
     const result = await api('getUsers');
     btn.disabled = false;
-    if (result && Array.isArray(result)) {
-      txt.textContent = '✅ Connected!';
-      btn.style.borderColor = '#6b8e23';
-      btn.style.color = '#6b8e23';
-      setTimeout(() => { txt.textContent = 'Test Connection'; btn.style.borderColor = '#333'; btn.style.color = '#888'; }, 3000);
-    } else {
-      txt.textContent = '❌ Failed — check URL & deployment';
-      btn.style.borderColor = '#f44336';
-      btn.style.color = '#f44336';
-      setTimeout(() => { txt.textContent = 'Test Connection'; btn.style.borderColor = '#333'; btn.style.color = '#888'; }, 4000);
-    }
-  } catch (err) {
-    btn.disabled = false;
-    txt.textContent = '❌ Error: ' + err.message;
-    btn.style.borderColor = '#f44336';
-    btn.style.color = '#f44336';
-    setTimeout(() => { txt.textContent = 'Test Connection'; btn.style.borderColor = '#333'; btn.style.color = '#888'; }, 4000);
-  }
+    if (result && Array.isArray(result)) { txt.textContent = '✅ Connected!'; btn.style.borderColor='#2a7a4a'; btn.style.color='#2a7a4a'; setTimeout(()=>{txt.textContent='Test Connection';btn.style.borderColor='#d0d9e3';btn.style.color='#5d6f83';},2500); }
+    else { txt.textContent='❌ Failed'; btn.style.borderColor='#d14c4c'; btn.style.color='#d14c4c'; setTimeout(()=>{txt.textContent='Test Connection';btn.style.borderColor='#d0d9e3';btn.style.color='#5d6f83';},3000); }
+  } catch(err) { btn.disabled=false; txt.textContent='❌ Error'; btn.style.borderColor='#d14c4c'; btn.style.color='#d14c4c'; setTimeout(()=>{txt.textContent='Test Connection';btn.style.borderColor='#d0d9e3';btn.style.color='#5d6f83';},3000); }
 }
-
 async function doLogout() {
   if (S.holdTimer) clearInterval(S.holdTimer);
   if (S.chatPoll) clearInterval(S.chatPoll);
-  if (S.user) localStorage.removeItem('r2_hold_expiry_' + S.user.userid);
+  if (S.user) localStorage.removeItem('r2_hold_expiry_'+S.user.userid);
   localStorage.removeItem('r2_userid');
-  S = { user:null, tasks:[], promos:[], rewards:[], users:[], isBanned:false,
-        earn:{step:'list',task:null,link:'',final:'',matched:false},
-        expandedReward:null, chatOpen:false, chatPoll:null, holdTimer:null, holdExpiry:null,
-        lastMessageCount:0, unreadCount:0, notificationPermission:'default' };
-  $('dashboard').classList.remove('show');
-  $('login-screen').style.display = 'flex';
-  $('user-dd').classList.remove('open');
-  $('chat-fab').classList.remove('show');
-  $('chat-panel').classList.remove('open');
-  $('notif-permission-toast').classList.remove('show');
+  S = { user:null, tasks:[], promos:[], rewards:[], users:[], isBanned:false, earn:{step:'list',task:null,link:'',final:'',matched:false}, expandedReward:null, chatOpen:false, chatPoll:null, holdTimer:null, holdExpiry:null, lastMessageCount:0, unreadCount:0, notificationPermission:'default' };
+  document.getElementById('dashboard').classList.remove('show');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('user-dd').classList.remove('open');
+  document.getElementById('chat-fab').classList.remove('show');
+  document.getElementById('chat-panel').classList.remove('open');
+  document.getElementById('notif-permission-toast').classList.remove('show');
   switchTab('home');
 }
+function toggleUserDD() { document.getElementById('user-dd').classList.toggle('open'); }
+document.addEventListener('click', e => { if (!document.getElementById('user-chip').contains(e.target)) document.getElementById('user-dd').classList.remove('open'); });
 
-function toggleUserDD() { $('user-dd').classList.toggle('open'); }
-document.addEventListener('click', e => { if (!$('user-chip').contains(e.target)) $('user-dd').classList.remove('open'); });
-
-// ── SESSION ──────────────────────────────────────────────────
 function enterDashboard() {
-  $('login-screen').style.display = 'none';
-  $('dashboard').classList.add('show');
-  $('chat-fab').classList.add('show');
-  $('chip-name').textContent = S.user.userid;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('dashboard').classList.add('show');
+  document.getElementById('chat-fab').classList.add('show');
+  document.getElementById('chip-name').textContent = S.user.userid;
   updateHeader();
-  const exp = parseInt(localStorage.getItem('r2_hold_expiry_' + S.user.userid) || '0');
+  const exp = parseInt(localStorage.getItem('r2_hold_expiry_'+S.user.userid) || '0');
   if (exp > Date.now()) { S.holdExpiry = exp; startCountdown(); }
-  else if (exp > 0) { localStorage.removeItem('r2_hold_expiry_' + S.user.userid); releaseHold(); }
-  const savedPerm = localStorage.getItem('r2_notification_permission');
-  if (savedPerm) S.notificationPermission = savedPerm;
+  else if (exp > 0) { localStorage.removeItem('r2_hold_expiry_'+S.user.userid); releaseHold(); }
 }
-
 async function loadAllData() {
   try {
-    const [tasks, promos, rewards, users] = await Promise.all([
-      api('getTasks'), api('getPromos'), api('getRewards'), api('getUsers'),
-    ]);
-    S.tasks   = Array.isArray(tasks)   ? tasks   : [];
-    S.promos  = Array.isArray(promos)  ? promos  : [];
+    const [tasks, promos, rewards, users] = await Promise.all([api('getTasks'), api('getPromos'), api('getRewards'), api('getUsers')]);
+    S.tasks = Array.isArray(tasks) ? tasks : [];
+    S.promos = Array.isArray(promos) ? promos : [];
     S.rewards = Array.isArray(rewards) ? rewards : [];
-    S.users   = Array.isArray(users)   ? users   : [];
-    renderHome();
-    renderEarn();
-    renderRedeem();
-    renderLeaderboard();
-  } catch (err) {
-    showToast('Error loading data: ' + err.message);
-  }
+    S.users = Array.isArray(users) ? users : [];
+    renderHome(); renderEarn(); renderRedeem(); renderLeaderboard();
+  } catch(err) { showToast('Error loading data: ' + err.message); }
 }
-
-// ── NAV ──────────────────────────────────────────────────────
 function switchTab(id) {
   document.querySelectorAll('.tab-sec').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-  const tab = $('tab-' + id);
-  if (tab) tab.classList.add('active');
-  const btn = document.querySelector('.nav-tab[data-tab="' + id + '"]');
-  if (btn) btn.classList.add('active');
-  $('user-dd').classList.remove('open');
+  const tab = document.getElementById('tab-'+id); if (tab) tab.classList.add('active');
+  const btn = document.querySelector('.nav-tab[data-tab="'+id+'"]'); if (btn) btn.classList.add('active');
+  document.getElementById('user-dd').classList.remove('open');
 }
-
-// ── HEADER ───────────────────────────────────────────────────
 function updateHeader() {
   if (!S.user) return;
   const pts = parseFloat(S.user.pts) || 0;
-  $('tb-pts').textContent = fmt(pts);
-  $('tb-pts-wrap').className = 'pts-main' + (pts < 0 ? ' negative' : '');
-  $('tb-onhold').textContent = fmt(S.user.onhold);
+  document.getElementById('tb-pts').textContent = fmt(pts);
+  document.getElementById('tb-pts-wrap').className = 'pts-main' + (pts < 0 ? ' negative' : '');
+  document.getElementById('tb-onhold').textContent = fmt(S.user.onhold);
 }
-
 function updateUserLocal(updates) {
   Object.assign(S.user, updates);
   const idx = S.users.findIndex(u => u.userid === S.user.userid);
   if (idx >= 0) Object.assign(S.users[idx], updates);
   updateHeader();
 }
-
-// ── HOME ─────────────────────────────────────────────────────
 function renderHome() {
-  const u = S.user;
-  if (!u) return;
+  const u = S.user; if (!u) return;
   const pts = parseFloat(u.pts) || 0;
-  const isNegative = pts < 0;
-  $('home-stats').innerHTML =
-    sc('Your PTS',    fmt(pts),    isNegative ? 'negative' : 'green') +
-    sc('On Hold',     fmt(u.onhold), 'gold', S.holdExpiry ? '<div class="s-note" id="home-cd"></div>' : '') +
-    sc('Members',     S.users.length)  +
-    sc('Tasks',       S.tasks.length)  +
-    sc('Promo Codes', S.promos.length);
+  const isNeg = pts < 0;
+  document.getElementById('home-stats').innerHTML =
+    `<div class="stat-card"><div class="s-lbl">Your PTS</div><div class="s-val ${isNeg?'negative':'green'}">${fmt(pts)}</div></div>
+     <div class="stat-card"><div class="s-lbl">On Hold</div><div class="s-val gold">${fmt(u.onhold)}</div>${S.holdExpiry?'<div class="s-note" id="home-cd"></div>':''}</div>
+     <div class="stat-card"><div class="s-lbl">Members</div><div class="s-val">${S.users.length}</div></div>
+     <div class="stat-card"><div class="s-lbl">Tasks</div><div class="s-val">${S.tasks.length}</div></div>
+     <div class="stat-card"><div class="s-lbl">Promo Codes</div><div class="s-val">${S.promos.length}</div></div>`;
 }
-function sc(lbl, val, cls='', extra='') {
-  return `<div class="stat-card"><div class="s-lbl">${lbl}</div><div class="s-val ${cls||''}">${val}</div>${extra}</div>`;
-}
-
-// ── EARN ─────────────────────────────────────────────────────
 function renderEarn() {
-  const c = $('earn-container');
-  if (!c) return;
+  const c = document.getElementById('earn-container'); if (!c) return;
   const e = S.earn;
-
   if (e.step === 'list') {
-    if (!S.tasks || !S.tasks.length) { 
-      c.innerHTML = '<p class="empty-msg">No tasks available right now.</p>'; 
-      return; 
-    }
-    c.innerHTML = S.tasks.map((t) => {
-      // SAFE: Check if Details exists before using split
+    if (!S.tasks || !S.tasks.length) { c.innerHTML = '<p class="empty-msg">No tasks available.</p>'; return; }
+    c.innerHTML = S.tasks.map(t => {
       const details = t.Details || 'Complete the task as described.';
       const firstLine = details.split('\n')[0] || details;
       const reward = t.Reward || '0';
       const taskId = t['task#'] || 'Unknown';
-      
-      return `<div class="task-card">
-        <div>
-          <div><span class="t-id">${esc(taskId)}</span><span class="t-badge">+${esc(reward)} PTS</span></div>
-          <p class="t-desc">${esc(firstLine)}</p>
-          <p class="t-meta">3-step verification</p>
-        </div>
-        <button class="start-btn" onclick="earnStart('${esc(taskId)}')">Start Task <i class="fas fa-chevron-right"></i></button>
-      </div>`;
+      return `<div class="task-card"><div><span class="t-id">${esc(taskId)}</span><span class="t-badge">+${esc(reward)} PTS</span><p class="t-desc">${esc(firstLine)}</p><p class="t-meta">3-step verification</p></div><button class="start-btn" onclick="earnStart('${esc(taskId)}')">Start Task <i class="fas fa-chevron-right"></i></button></div>`;
     }).join('');
     return;
   }
-
-  if (e.step === 'loading') {
-    c.innerHTML = `<div class="load-screen"><i class="fas fa-spinner load-ico"></i><p class="load-title">Verifying your submission…</p><p class="load-sub">Please wait</p></div>`;
-    return;
-  }
-
+  if (e.step === 'loading') { c.innerHTML = `<div class="load-screen"><i class="fas fa-spinner load-ico"></i><p class="load-title">Verifying…</p><p class="load-sub">Please wait</p></div>`; return; }
   if (e.step === 'result') {
     const reward = e.task ? (e.task.Reward || '0') : '0';
     c.innerHTML = e.matched
-      ? `<div class="res-screen ok"><span class="res-ico">✅</span><div class="res-title">Task Complete!</div><div class="res-pts green">+${esc(reward)} PTS</div><p class="res-note">Reward added to your On Hold balance.</p><p class="res-note2">⏱ Releases to main balance in 1 hour.</p><button class="btn-back" onclick="earnReset()"><i class="fas fa-arrow-left"></i> Back to Tasks</button></div>`
-      : `<div class="res-screen exp"><span class="res-ico">⚠️</span><div class="res-title">Expected Reward</div><div class="res-pts gold">${esc(reward)} PTS</div><p class="res-note" style="margin-bottom:32px">Your submission has been reviewed.</p><button class="btn-back" onclick="earnReset()"><i class="fas fa-arrow-left"></i> Back to Tasks</button></div>`;
+      ? `<div class="res-screen ok"><span class="res-ico">✅</span><div class="res-title">Task Complete!</div><div class="res-pts green">+${esc(reward)} PTS</div><p class="res-note">Added to On Hold.</p><p class="res-note2">⏱ Releases in 1 hour.</p><button class="btn-back" onclick="earnReset()"><i class="fas fa-arrow-left"></i> Back</button></div>`
+      : `<div class="res-screen exp"><span class="res-ico">⚠️</span><div class="res-title">Expected Reward</div><div class="res-pts gold">${esc(reward)} PTS</div><p class="res-note" style="margin-bottom:24px;">Your submission was reviewed.</p><button class="btn-back" onclick="earnReset()"><i class="fas fa-arrow-left"></i> Back</button></div>`;
     return;
   }
-
-  // Step flow - ensure task exists
-  if (!e.task) {
-    c.innerHTML = '<p class="empty-msg">No task selected. Please go back and select a task.</p>';
-    return;
-  }
-
+  if (!e.task) { c.innerHTML = '<p class="empty-msg">No task selected.</p>'; return; }
   const sn = e.step === 'step1' ? 1 : e.step === 'step2' ? 2 : 3;
-  const ind = [1,2,3].map(n =>
-    `<div class="step-c ${n<sn?'done':n===sn?'act':''}">${n<sn?'✓':n}</div>${n<3?`<div class="step-ln ${n<sn?'done':''}"></div>`:''}`
-  ).join('') + `<span class="step-lbl">Step ${sn} of 3</span>`;
-
+  const ind = [1,2,3].map(n => `<div class="step-c ${n<sn?'done':n===sn?'act':''}">${n<sn?'✓':n}</div>${n<3?`<div class="step-ln ${n<sn?'done':''}"></div>`:''}`).join('') + `<span class="step-lbl">Step ${sn} of 3</span>`;
   let body = '';
   if (sn === 1) {
     const details = e.task.Details || 'Complete the task as described.';
     const lines = details.split('\n').filter(l => l.trim());
-    body = `<div class="st-title">Read the instructions carefully</div>
-      <div class="instr-box">${lines.map(l=>`<div class="instr-line">${esc(l)}</div>`).join('')}</div>
-      <button class="btn-out" onclick="earnGo('step2')">I've read the instructions <i class="fas fa-chevron-right"></i></button>`;
+    body = `<div class="st-title">Read instructions</div><div class="instr-box">${lines.map(l=>`<div class="instr-line">${esc(l)}</div>`).join('')}</div><button class="btn-out" onclick="earnGo('step2')">I've read <i class="fas fa-chevron-right"></i></button>`;
   } else if (sn === 2) {
-    body = `<div class="st-title">Paste the confirmation link</div>
-      <p class="st-desc">Complete the task, then paste the URL of the page you landed on.</p>
-      <input class="step-inp" type="url" id="step-inp" placeholder="https://example.com/page" value="${esc(e.link)}" oninput="S.earn.link=this.value;document.getElementById('step-next').disabled=!this.value.trim()">
-      <button class="btn-out" id="step-next" onclick="earnGo('step3')" ${!e.link.trim()?'disabled':''}>Next <i class="fas fa-chevron-right"></i></button>`;
+    body = `<div class="st-title">Paste confirmation link</div><p class="st-desc">Complete the task and paste the URL.</p><input class="step-inp" type="url" id="step-inp" placeholder="https://example.com/page" value="${esc(e.link)}" oninput="S.earn.link=this.value;document.getElementById('step-next').disabled=!this.value.trim()"><button class="btn-out" id="step-next" onclick="earnGo('step3')" ${!e.link.trim()?'disabled':''}>Next <i class="fas fa-chevron-right"></i></button>`;
   } else {
-    const hint = e.task.Detail2 || 'Enter the confirmation code from the task.';
-    body = `<div class="st-title">Final verification</div>
-      <div class="hint-box"><p class="hint-txt">${esc(hint)}</p></div>
-      <input class="step-inp" id="step-inp" placeholder="Enter your answer" value="${esc(e.final)}" oninput="S.earn.final=this.value;document.getElementById('step-submit').disabled=!this.value.trim()">
-      <button class="btn-gold" id="step-submit" onclick="earnSubmit()" ${!e.final.trim()?'disabled':''}>Submit Task</button>`;
+    const hint = e.task.Detail2 || 'Enter the confirmation code.';
+    body = `<div class="st-title">Final verification</div><div class="hint-box"><p class="hint-txt">${esc(hint)}</p></div><input class="step-inp" id="step-inp" placeholder="Enter your answer" value="${esc(e.final)}" oninput="S.earn.final=this.value;document.getElementById('step-submit').disabled=!this.value.trim()"><button class="btn-gold" id="step-submit" onclick="earnSubmit()" ${!e.final.trim()?'disabled':''}>Submit Task</button>`;
   }
-
   const taskId = e.task['task#'] || 'Unknown';
   const reward = e.task.Reward || '0';
-
-  c.innerHTML = `<div class="step-ind">${ind}</div>
-    <div class="step-card">
-      <div class="sc-hdr"><span class="sc-tid">${esc(taskId)}</span><span class="sc-rwd">· +${esc(reward)} PTS reward</span></div>
-      ${body}
-    </div>`;
+  c.innerHTML = `<div class="step-ind">${ind}</div><div class="step-card"><div class="sc-hdr"><span class="sc-tid">${esc(taskId)}</span><span class="sc-rwd">· +${esc(reward)} PTS</span></div>${body}</div>`;
 }
-
 function earnStart(id) {
   const t = S.tasks.find(x => String(x['task#']).trim() === String(id).trim());
-  if (!t) { showToast('Task not found: ' + id); return; }
-  if (!t.Reward) t.Reward = '0';
-  if (!t.Details) t.Details = 'Complete the task as described.';
-  if (!t.Detail2) t.Detail2 = 'Enter the confirmation code from the task.';
-  if (!t.LinkConfirm) t.LinkConfirm = '';
-  if (!t.FinalConfirm) t.FinalConfirm = '';
-  S.earn = { step: 'step1', task: t, link: '', final: '', matched: false };
+  if (!t) { showToast('Task not found.'); return; }
+  if (!t.Reward) t.Reward = '0'; if (!t.Details) t.Details = 'Complete the task.';
+  if (!t.Detail2) t.Detail2 = 'Enter the confirmation code.';
+  S.earn = { step:'step1', task:t, link:'', final:'', matched:false };
   renderEarn();
 }
-
-function earnGo(step) { 
-  if (step === 'step2') {
-    const inp = document.getElementById('step-inp');
-    if (inp) S.earn.link = inp.value.trim();
-  }
-  S.earn.step = step; 
-  renderEarn(); 
+function earnGo(step) {
+  const inp = document.getElementById('step-inp');
+  if (inp && step === 'step2') S.earn.link = inp.value.trim();
+  S.earn.step = step;
+  renderEarn();
 }
-
-function earnReset()  { 
-  S.earn = { step:'list', task:null, link:'', final:'', matched:false }; 
-  renderEarn(); 
-  renderHome(); 
-}
-
+function earnReset() { S.earn = { step:'list', task:null, link:'', final:'', matched:false }; renderEarn(); renderHome(); }
 async function earnSubmit() {
   const e = S.earn;
   const inp = document.getElementById('step-inp');
   if (inp) e.final = inp.value.trim();
-  e.step = 'loading';
-  renderEarn();
-
+  e.step = 'loading'; renderEarn();
   try {
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Verification timed out. Please try again.')), 10000);
-    });
-
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Verification timed out.')), 10000));
     const linkMatch = norm(e.link) === norm(e.task.LinkConfirm || '');
     const finalMatch = norm(e.final) === norm(e.task.FinalConfirm || '');
     const matched = linkMatch && finalMatch;
-
     if (matched) {
-      const result = await Promise.race([
-        api('completeTask', {
-          taskId: e.task['task#'],
-          userid: S.user.userid,
-          reward: e.task.Reward,
-        }),
-        timeoutPromise
-      ]);
-      
+      const result = await Promise.race([api('completeTask', { taskId:e.task['task#'], userid:S.user.userid, reward:e.task.Reward }), timeoutPromise]);
       if (result && result.success) {
         const newOnHold = parseFloat(result.newOnHold || 0);
-        const newPts = parseFloat(result.newPts || S.user.pts || 0);
-        
-        updateUserLocal({ 
-          onhold: fmt(newOnHold),
-          pts: fmt(newPts)
-        });
-        
+        updateUserLocal({ onhold: fmt(newOnHold), pts: fmt(parseFloat(result.newPts || S.user.pts || 0)) });
         S.tasks = S.tasks.filter(t => t['task#'] !== e.task['task#']);
-        beginHoldTimer();
-        renderHome();
-        e.matched = true;
-        showToast('✅ Task completed! +' + e.task.Reward + ' PTS added to On Hold!');
+        beginHoldTimer(); renderHome(); e.matched = true;
+        showToast('✅ Task completed! +' + e.task.Reward + ' PTS');
         sendBrowserNotification('✅ Task Complete!', 'You earned +' + e.task.Reward + ' PTS!');
-      } else {
-        e.matched = false;
-        if (result && result.error) showToast('Error: ' + result.error);
-      }
-    } else {
-      e.matched = false;
-      if (!linkMatch && !finalMatch) showToast('Both the link and confirmation code are incorrect.');
-      else if (!linkMatch) showToast('The confirmation link does not match.');
-      else if (!finalMatch) showToast('The confirmation code does not match.');
-    }
-
-    e.step = 'result';
-    renderEarn();
-  } catch (err) {
-    showToast('Error: ' + err.message);
-    e.step = 'step3';
-    renderEarn();
-  }
+      } else { e.matched = false; if (result && result.error) showToast('Error: ' + result.error); }
+    } else { e.matched = false; showToast('Verification failed. Please check your inputs.'); }
+    e.step = 'result'; renderEarn();
+  } catch (err) { showToast('Error: ' + err.message); e.step = 'step3'; renderEarn(); }
 }
-
-// ── REDEEM ───────────────────────────────────────────────────
 function renderRedeem() {
   if (!S.user) return;
   const userPts = parseFloat(S.user.pts) || 0;
-  if (!S.rewards || !S.rewards.length) { 
-    $('rew-grid').innerHTML = '<p class="empty-msg">No rewards available yet.</p>'; 
-    return; 
-  }
-
-  $('rew-grid').innerHTML = S.rewards.map(r => {
+  if (!S.rewards || !S.rewards.length) { document.getElementById('rew-grid').innerHTML = '<p class="empty-msg">No rewards available.</p>'; return; }
+  document.getElementById('rew-grid').innerHTML = S.rewards.map(r => {
     const cost = parseFloat(r.cost) || 0;
     const canAfford = userPts >= cost && userPts >= 0;
     const open = S.expandedReward === r.reward_name;
     const safeName = (r.reward_name||'').replace(/'/g, "\\'");
     const revealed = r._revealed || false;
-
     let panel = '';
     if (open) {
       if (!revealed) {
-        panel = `<div class="rew-panel-confirm">
-          <div style="display:flex;flex-direction:column;gap:12px;align-items:center;">
-            <div style="text-align:center;width:100%;">
-              <div style="color:var(--gold);font-size:20px;font-weight:700;margin-bottom:4px;">⚠️ Confirm Redemption</div>
-              <div style="color:var(--muted);font-size:14px;margin-bottom:8px;">This will deduct <span class="confirm-cost">${esc(r.cost)} PTS</span> from your balance</div>
-              <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:8px 0;">
-                <span style="color:var(--muted);font-size:13px;">Your balance: <strong style="color:${userPts < 0 ? 'var(--red)' : 'var(--green)'};">${fmt(userPts)} PTS</strong></span>
-                ${!canAfford ? `<span style="color:var(--red);font-size:13px;font-weight:700;">${userPts < 0 ? '⚠️ Negative balance' : '⚠️ Insufficient funds'}</span>` : ''}
-              </div>
-            </div>
-            <button class="confirm-btn" onclick="confirmReward('${safeName}')" ${!canAfford ? 'disabled' : ''}>
-              <i class="fas fa-check-circle"></i> Confirm & Redeem (${esc(r.cost)} PTS)
-            </button>
-            ${canAfford ? `<div class="confirm-warning">⚠️ This action is final and cannot be undone</div>` : 
-                          `<div class="confirm-warning" style="color:var(--red);">${userPts < 0 ? 'Clear your negative balance first' : 'You need ' + fmt(cost - userPts) + ' more PTS'}</div>`}
-          </div>
-        </div>`;
+        panel = `<div class="rew-panel-confirm"><div style="display:flex;flex-direction:column;gap:12px;align-items:center;"><div style="text-align:center;width:100%;"><div style="color:#e67e22;font-size:20px;font-weight:700;">⚠️ Confirm</div><div style="color:#4a5a6e;font-size:14px;margin-bottom:8px;">Deduct <span class="confirm-cost">${esc(r.cost)} PTS</span></div><div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:8px 0;"><span style="color:#5d6f83;font-size:13px;">Balance: <strong style="color:${userPts < 0 ? '#d14c4c' : '#2a7a4a'};">${fmt(userPts)} PTS</strong></span>${!canAfford?`<span style="color:#d14c4c;font-size:13px;font-weight:700;">${userPts < 0 ? '⚠️ Negative' : '⚠️ Insufficient'}</span>`:''}</div></div><button class="confirm-btn" onclick="confirmReward('${safeName}')" ${!canAfford?'disabled':''}><i class="fas fa-check-circle"></i> Confirm (${esc(r.cost)} PTS)</button>${canAfford?'<div class="confirm-warning">⚠️ Final</div>':'<div class="confirm-warning" style="color:#d14c4c;">'+ (userPts < 0 ? 'Clear negative balance' : 'Need ' + fmt(cost - userPts) + ' more') +'</div>'}</div></div>`;
       } else {
-        panel = `<div class="rew-panel-revealed">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;color:var(--green);">
-            <i class="fas fa-check-circle"></i>
-            <span style="font-weight:700;">Redeemed Successfully!</span>
-          </div>
-          <div class="rew-pair">
-            <div>
-              <div class="rew-info-lbl">Reward Info</div>
-              <span class="rew-code">${esc(r.info || 'Code: ' + r.reward_name)}</span>
-            </div>
-            <div>
-              <div class="rew-bal-lbl">Your Balance</div>
-              <div class="rew-bal-val">${fmt(S.user.pts)} PTS</div>
-            </div>
-          </div>
-          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-              <span style="color:var(--muted);font-size:12px;">Redeemed at: ${new Date().toLocaleString()}</span>
-              <span class="rew-status-ok"><i class="fas fa-check-circle"></i> Completed</span>
-            </div>
-          </div>
-        </div>`;
+        panel = `<div class="rew-panel-revealed"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;color:#2a7a4a;"><i class="fas fa-check-circle"></i><span style="font-weight:700;">Redeemed!</span></div><div class="rew-pair"><div><div class="rew-info-lbl">Reward</div><span class="rew-code">${esc(r.info || 'Code: '+r.reward_name)}</span></div><div><div class="rew-bal-lbl">Balance</div><div class="rew-bal-val">${fmt(S.user.pts)} PTS</div></div></div><div style="margin-top:12px;padding-top:12px;border-top:1px solid #e9eef3;"><span style="color:#5d6f83;font-size:12px;">Redeemed: ${new Date().toLocaleString()}</span></div></div>`;
       }
     }
-
     const iconClass = revealed ? 'fas fa-check-circle' : 'fas fa-gift';
-    const iconColor = revealed ? 'var(--green)' : 'var(--gold)';
-
-    return `<div class="rew-wrap">
-      <div class="rew-hdr${open?' open':''}" onclick="toggleReward('${safeName}')">
-        <div style="display:flex;align-items:center;gap:14px">
-          <div class="rew-icon"><i class="${iconClass}" style="color:${iconColor};"></i></div>
-          <div>
-            <div class="rew-name">${esc(r.reward_name)} ${revealed ? '✅' : ''}</div>
-            <div class="${canAfford && !revealed ? 'rew-cost-ok' : 'rew-cost-no'}">${esc(r.cost)} PTS</div>
-          </div>
-        </div>
-        <i class="fas fa-chevron-${open?'up':'down'}" style="color:var(--muted)"></i>
-      </div>${panel}
-    </div>`;
+    const iconColor = revealed ? '#2a7a4a' : '#e67e22';
+    return `<div class="rew-wrap"><div class="rew-hdr${open?' open':''}" onclick="toggleReward('${safeName}')"><div style="display:flex;align-items:center;gap:14px;"><div class="rew-icon"><i class="${iconClass}" style="color:${iconColor};"></i></div><div><div class="rew-name">${esc(r.reward_name)} ${revealed?'✅':''}</div><div class="${canAfford && !revealed ? 'rew-cost-ok' : 'rew-cost-no'}">${esc(r.cost)} PTS</div></div></div><i class="fas fa-chevron-${open?'up':'down'}" style="color:#8a9aa8;"></i></div>${panel}</div>`;
   }).join('');
 }
-
 function toggleReward(name) {
-  if (S.expandedReward === name) {
-    S.expandedReward = null;
-  } else {
-    S.rewards.forEach(r => { if (r.reward_name !== name) r._revealed = false; });
-    S.expandedReward = name;
-  }
+  if (S.expandedReward === name) { S.expandedReward = null; } else { S.rewards.forEach(r => { if (r.reward_name !== name) r._revealed = false; }); S.expandedReward = name; }
   renderRedeem();
 }
-
 async function confirmReward(name) {
   const reward = S.rewards.find(r => r.reward_name === name);
   if (!reward) { showToast('Reward not found.'); return; }
   const cost = parseFloat(reward.cost) || 0;
   const userPts = parseFloat(S.user.pts) || 0;
-  if (userPts < cost || userPts < 0) {
-    showToast(userPts < 0 ? 'Cannot redeem with negative balance.' : 'Insufficient funds.');
-    return;
-  }
+  if (userPts < cost || userPts < 0) { showToast(userPts < 0 ? 'Negative balance.' : 'Insufficient funds.'); return; }
   try {
-    const result = await api('redeemReward', {
-      userid: S.user.userid,
-      rewardName: reward.reward_name,
-      cost: cost
-    });
+    const result = await api('redeemReward', { userid:S.user.userid, rewardName:reward.reward_name, cost });
     if (result.success) {
       updateUserLocal({ pts: parseFloat(result.newPts).toFixed(2) });
       reward._revealed = true;
-      renderRedeem();
-      renderHome();
+      renderRedeem(); renderHome();
       showToast('✅ Reward redeemed!');
-      sendBrowserNotification('🎁 Reward Redeemed!', `You redeemed ${reward.reward_name}!`);
-    } else {
-      showToast('Failed: ' + (result.error || 'Unknown error'));
-    }
-  } catch (err) {
-    showToast('Error: ' + err.message);
-  }
+      sendBrowserNotification('🎁 Reward Redeemed!', `${reward.reward_name}!`);
+    } else { showToast('Failed: ' + (result.error || 'Unknown error')); }
+  } catch(err) { showToast('Error: ' + err.message); }
 }
-
-// ── LEADERBOARD ──────────────────────────────────────────────
 function renderLeaderboard() {
   const sorted = [...S.users].sort((a,b) => (parseFloat(b.pts)||0) - (parseFloat(a.pts)||0));
-  const uid    = S.user ? S.user.userid : '';
-  if (!sorted.length) { $('leaderboard-wrap').innerHTML = ''; return; }
-  $('leaderboard-wrap').innerHTML = `<div class="tbl-wrap"><table>
-    <thead><tr><th>Rank</th><th>User</th><th>PTS</th><th>Status</th></tr></thead>
-    <tbody>
-      ${sorted.map((u,i) => `<tr>
-        <td class="${['r1','r2','r3'][i]||'rn'}">#${i+1}</td>
-        <td class="${u.userid===uid?'you-star':''}">${esc(u.userid)}${u.userid===uid?' ★':''}</td>
-        <td style="color:${parseFloat(u.pts||0) < 0 ? 'var(--red)' : 'var(--green)'};font-weight:700">${esc(u.pts)}</td>
-        <td><span class="sb ${u.status==='active'?'sb-on':'sb-off'}">${esc(u.status)}</span></td>
-      </tr>`).join('')}
-    </tbody></table></div>`;
+  const uid = S.user ? S.user.userid : '';
+  if (!sorted.length) { document.getElementById('leaderboard-wrap').innerHTML = ''; return; }
+  document.getElementById('leaderboard-wrap').innerHTML = `<div class="tbl-wrap"><table><thead><tr><th>Rank</th><th>User</th><th>PTS</th><th>Status</th></tr></thead><tbody>${sorted.map((u,i) => `<tr><td class="${['r1','r2','r3'][i]||'rn'}">#${i+1}</td><td class="${u.userid===uid?'you-star':''}">${esc(u.userid)}${u.userid===uid?' ★':''}</td><td style="color:${parseFloat(u.pts||0)<0?'#d14c4c':'#2a7a4a'};font-weight:700">${esc(u.pts)}</td><td><span class="sb ${u.status==='active'?'sb-on':'sb-off'}">${esc(u.status)}</span></td></tr>`).join('')}</tbody></table></div>`;
 }
-
-// ── PROMO MODAL ──────────────────────────────────────────────
 function openPromo() {
-  $('promo-overlay').classList.add('show');
-  $('promo-input').value = '';
-  $('promo-err').classList.remove('show');
-  $('promo-success').classList.remove('show');
-  $('promo-default').classList.remove('hidden');
-  $('promo-btn-txt').textContent = 'Redeem Code';
-  $('promo-submit-btn').disabled = false;
-  $('user-dd').classList.remove('open');
-  setTimeout(() => $('promo-input').focus(), 80);
+  document.getElementById('promo-overlay').classList.add('show');
+  document.getElementById('promo-input').value = '';
+  document.getElementById('promo-err').classList.remove('show');
+  document.getElementById('promo-success').classList.remove('show');
+  document.getElementById('promo-default').classList.remove('hidden');
+  document.getElementById('promo-btn-txt').textContent = 'Redeem Code';
+  document.getElementById('promo-submit-btn').disabled = false;
+  document.getElementById('user-dd').classList.remove('open');
+  setTimeout(() => document.getElementById('promo-input').focus(), 80);
 }
-function closePromo() { $('promo-overlay').classList.remove('show'); }
-function closePromoOnBg(e) { if (e.target === $('promo-overlay')) closePromo(); }
-
+function closePromo() { document.getElementById('promo-overlay').classList.remove('show'); }
+function closePromoOnBg(e) { if (e.target === document.getElementById('promo-overlay')) closePromo(); }
 async function submitPromo() {
-  const code = $('promo-input').value.trim().toLowerCase();
+  const code = document.getElementById('promo-input').value.trim().toLowerCase();
   if (!code) return;
-  $('promo-err').classList.remove('show');
-  $('promo-btn-txt').textContent = 'Redeeming…';
-  $('promo-submit-btn').disabled = true;
+  document.getElementById('promo-err').classList.remove('show');
+  document.getElementById('promo-btn-txt').textContent = 'Redeeming…';
+  document.getElementById('promo-submit-btn').disabled = true;
   try {
     const result = await api('redeemPromo', { code, userid: S.user.userid });
-    if (!result.success) {
-      $('promo-err-txt').textContent = result.error || 'Failed to redeem code';
-      $('promo-err').classList.add('show');
-      $('promo-btn-txt').textContent = 'Redeem Code';
-      $('promo-submit-btn').disabled = false;
-      return;
-    }
+    if (!result.success) { document.getElementById('promo-err-txt').textContent = result.error || 'Failed'; document.getElementById('promo-err').classList.add('show'); document.getElementById('promo-btn-txt').textContent = 'Redeem Code'; document.getElementById('promo-submit-btn').disabled = false; return; }
     updateUserLocal({ onhold: parseFloat(result.newOnHold).toFixed(2) });
     beginHoldTimer();
-    $('ms-pts-val').textContent = '+' + result.amount + ' PTS';
-    $('promo-default').classList.add('hidden');
-    $('promo-success').classList.add('show');
-    renderHome();
-    renderRedeem();
-  } catch (err) {
-    $('promo-err-txt').textContent = 'Error: ' + err.message;
-    $('promo-err').classList.add('show');
-  }
-  $('promo-btn-txt').textContent = 'Redeem Code';
-  $('promo-submit-btn').disabled = false;
+    document.getElementById('ms-pts-val').textContent = '+' + result.amount + ' PTS';
+    document.getElementById('promo-default').classList.add('hidden');
+    document.getElementById('promo-success').classList.add('show');
+    renderHome(); renderRedeem();
+  } catch(err) { document.getElementById('promo-err-txt').textContent = 'Error: ' + err.message; document.getElementById('promo-err').classList.add('show'); }
+  document.getElementById('promo-btn-txt').textContent = 'Redeem Code';
+  document.getElementById('promo-submit-btn').disabled = false;
 }
-
-// ── HOLD TIMER ───────────────────────────────────────────────
 function beginHoldTimer() {
   const expiry = Date.now() + 3600000;
   S.holdExpiry = expiry;
-  localStorage.setItem('r2_hold_expiry_' + S.user.userid, expiry);
+  localStorage.setItem('r2_hold_expiry_'+S.user.userid, expiry);
   startCountdown();
   renderHome();
 }
-
 function startCountdown() {
   if (S.holdTimer) clearInterval(S.holdTimer);
   S.holdTimer = setInterval(tickCountdown, 1000);
   tickCountdown();
 }
-
 function tickCountdown() {
   if (!S.holdExpiry) { clearInterval(S.holdTimer); return; }
   const rem = S.holdExpiry - Date.now();
-  if (rem <= 0) {
-    clearInterval(S.holdTimer);
-    S.holdExpiry = null;
-    localStorage.removeItem('r2_hold_expiry_' + S.user.userid);
-    $('tb-countdown').style.display = 'none';
-    releaseHold();
-    return;
-  }
+  if (rem <= 0) { clearInterval(S.holdTimer); S.holdExpiry = null; localStorage.removeItem('r2_hold_expiry_'+S.user.userid); document.getElementById('tb-countdown').style.display = 'none'; releaseHold(); return; }
   const m = Math.floor(rem / 60000), s = Math.floor((rem % 60000) / 1000);
   const txt = `(${m}:${String(s).padStart(2,'0')})`;
-  $('tb-countdown').textContent = txt;
-  $('tb-countdown').style.display = 'inline';
-  const hcd = $('home-cd');
+  document.getElementById('tb-countdown').textContent = txt;
+  document.getElementById('tb-countdown').style.display = 'inline';
+  const hcd = document.getElementById('home-cd');
   if (hcd) hcd.textContent = '⏱ ' + txt;
 }
-
 async function releaseHold() {
   if (!S.user) return;
   try {
     const result = await api('releaseHold', { userid: S.user.userid });
     if (result.success && result.pts !== undefined) {
       updateUserLocal({ pts: parseFloat(result.pts).toFixed(2), onhold: '0' });
-      renderHome();
-      renderRedeem();
-      showToast('✅ On Hold points released to your balance!');
-      sendBrowserNotification('💰 Points Released!', 'Your On Hold points have been added to your balance.');
+      renderHome(); renderRedeem();
+      showToast('✅ On Hold points released!');
+      sendBrowserNotification('💰 Points Released!', 'On Hold added to balance.');
     }
-  } catch (err) {}
+  } catch(err) {}
 }
-
-// ── CHAT ─────────────────────────────────────────────────────
 function toggleChat() {
   S.chatOpen = !S.chatOpen;
-  $('chat-panel').classList.toggle('open', S.chatOpen);
-  $('chat-fab-icon').className = S.chatOpen ? 'fas fa-times' : 'fas fa-comments';
+  document.getElementById('chat-panel').classList.toggle('open', S.chatOpen);
+  document.getElementById('chat-fab-icon').className = S.chatOpen ? 'fas fa-times' : 'fas fa-comments';
   if (S.chatOpen) {
-    S.unreadCount = 0;
-    updateChatNotificationDot(false);
+    S.unreadCount = 0; updateChatNotificationDot(false);
     renderChatMessages();
     if (S.chatPoll) clearInterval(S.chatPoll);
     S.chatPoll = setInterval(renderChatMessages, 4000);
-    setTimeout(() => $('chat-inp').focus(), 80);
-  } else {
-    if (S.chatPoll) clearInterval(S.chatPoll);
-    S.chatPoll = null;
-  }
+    setTimeout(() => document.getElementById('chat-inp').focus(), 80);
+  } else { if (S.chatPoll) clearInterval(S.chatPoll); S.chatPoll = null; }
 }
-
 async function renderChatMessages() {
   if (!S.user) return;
   try {
@@ -1228,23 +1517,14 @@ async function renderChatMessages() {
     const banned = data.bannedUserids || [];
     const uid = S.user.userid;
     S.isBanned = banned.includes(uid);
-    $('banned-badge').className = 'banned-badge' + (S.isBanned ? ' show' : '');
-    const sb = $('chat-send-btn'), ci = $('chat-inp');
-    if (S.isBanned) {
-      sb.className = 'chat-send banned';
-      sb.innerHTML = '<i class="fas fa-lock"></i>';
-      ci.className = 'chat-inp ban-inp';
-      ci.placeholder = 'You are banned from chat';
-    } else {
-      sb.className = 'chat-send';
-      sb.innerHTML = '<i class="fas fa-paper-plane"></i>';
-      ci.className = 'chat-inp';
-      ci.placeholder = 'Type a message…';
-    }
-    const cont = $('chat-msgs');
+    document.getElementById('banned-badge').className = 'banned-badge' + (S.isBanned ? ' show' : '');
+    const sb = document.getElementById('chat-send-btn'), ci = document.getElementById('chat-inp');
+    if (S.isBanned) { sb.className = 'chat-send banned'; sb.innerHTML = '<i class="fas fa-lock"></i>'; ci.className = 'chat-inp ban-inp'; ci.placeholder = 'Banned from chat'; }
+    else { sb.className = 'chat-send'; sb.innerHTML = '<i class="fas fa-paper-plane"></i>'; ci.className = 'chat-inp'; ci.placeholder = 'Type a message…'; }
+    const cont = document.getElementById('chat-msgs');
     const atBottom = cont.scrollHeight - cont.scrollTop - cont.clientHeight < 60;
     const currentCount = msgs.length;
-    const isChatOpen = $('chat-panel').classList.contains('open');
+    const isChatOpen = document.getElementById('chat-panel').classList.contains('open');
     if (currentCount > S.lastMessageCount && S.lastMessageCount > 0) {
       const newMsgs = msgs.slice(S.lastMessageCount);
       const otherUserMsgs = newMsgs.filter(m => m.userid !== uid);
@@ -1252,90 +1532,53 @@ async function renderChatMessages() {
         S.unreadCount += otherUserMsgs.length;
         updateChatNotificationDot(true);
         const lastMsg = otherUserMsgs[otherUserMsgs.length - 1];
-        sendBrowserNotification(`💬 New message from ${lastMsg.userid}`, 
-          lastMsg.message.length > 50 ? lastMsg.message.substring(0,50)+'...' : lastMsg.message, 
-          'chat-'+Date.now());
+        sendBrowserNotification(`💬 New message from ${lastMsg.userid}`, lastMsg.message.length > 50 ? lastMsg.message.substring(0,50)+'...' : lastMsg.message, 'chat-'+Date.now());
         if (navigator.vibrate) navigator.vibrate(100);
       }
     }
     S.lastMessageCount = currentCount;
     if (!msgs.length) { cont.innerHTML = '<p class="chat-empty">No messages yet. Say hi! 👋</p>'; return; }
-    cont.innerHTML = msgs.map(m => {
-      const own = m.userid === uid;
-      return `<div class="chat-msg ${own?'own':'other'}">
-        <span class="msg-uid">${esc(m.userid)}</span>
-        <div class="msg-bubble">${esc(m.message)}</div>
-      </div>`;
-    }).join('');
+    cont.innerHTML = msgs.map(m => `<div class="chat-msg ${m.userid===uid?'own':'other'}"><span class="msg-uid">${esc(m.userid)}</span><div class="msg-bubble">${esc(m.message)}</div></div>`).join('');
     if (atBottom) cont.scrollTop = cont.scrollHeight;
-  } catch (err) {}
+  } catch(err) {}
 }
-
 function onChatInput() {
-  const val = $('chat-inp').value;
-  if (S.isBanned && val.length > 0) {
-    $('ban-err-msg').classList.add('show');
-    $('chat-inp').style.borderColor = 'var(--red)';
-  } else {
-    $('ban-err-msg').classList.remove('show');
-    $('chat-inp').style.borderColor = '';
-  }
+  const val = document.getElementById('chat-inp').value;
+  const err = document.getElementById('ban-err-msg');
+  if (S.isBanned && val.length > 0) { err.classList.add('show'); document.getElementById('chat-inp').style.borderColor = '#d14c4c'; }
+  else { err.classList.remove('show'); document.getElementById('chat-inp').style.borderColor = ''; }
 }
-
 function chatEnter(e) { if (e.key === 'Enter') sendChatMsg(); }
-
 async function sendChatMsg() {
   if (!S.user || S.isBanned) return;
-  const val = $('chat-inp').value.trim();
+  const val = document.getElementById('chat-inp').value.trim();
   if (!val) return;
-  const sb = $('chat-send-btn');
+  const sb = document.getElementById('chat-send-btn');
   sb.disabled = true;
-  $('chat-inp').value = '';
-  $('ban-err-msg').classList.remove('show');
-  try {
-    await api('sendMessage', { userid: S.user.userid, message: val });
-    await renderChatMessages();
-  } catch (err) {}
+  document.getElementById('chat-inp').value = '';
+  document.getElementById('ban-err-msg').classList.remove('show');
+  try { await api('sendMessage', { userid: S.user.userid, message: val }); await renderChatMessages(); } catch(err) {}
   sb.disabled = false;
-  $('chat-inp').focus();
+  document.getElementById('chat-inp').focus();
 }
-
-// ── KEYBOARD ─────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    if ($('login-screen').style.display !== 'none') doLogin();
-    if ($('promo-overlay').classList.contains('show')) submitPromo();
-  }
-  if (e.key === 'Escape') {
-    closePromo();
-    $('user-dd').classList.remove('open');
-  }
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') doLogin();
+  if (e.key === 'Enter' && document.getElementById('promo-overlay').classList.contains('show')) submitPromo();
+  if (e.key === 'Escape') { closePromo(); document.getElementById('user-dd').classList.remove('open'); }
 });
-
-// ── INIT ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   const savedUid = localStorage.getItem('r2_userid');
   if (!savedUid) return;
-  $('login-btn').disabled = true;
-  $('login-btn-txt').textContent = 'Restoring session…';
+  document.getElementById('login-btn').disabled = true;
+  document.getElementById('login-btn-txt').textContent = 'Restoring…';
   try {
     const users = await api('getUsers');
     const fresh = Array.isArray(users) ? users.find(u => u.userid === savedUid) : null;
-    $('login-btn').disabled = false;
-    $('login-btn-txt').textContent = 'Sign In';
-    if (fresh) {
-      S.user = { ...fresh };
-      enterDashboard();
-      await loadAllData();
-      setTimeout(checkAndRequestNotification, 1500);
-    } else {
-      localStorage.removeItem('r2_userid');
-    }
-  } catch (err) {
-    $('login-btn').disabled = false;
-    $('login-btn-txt').textContent = 'Sign In';
-    showToast('Session restore failed: ' + err.message);
-  }
+    document.getElementById('login-btn').disabled = false;
+    document.getElementById('login-btn-txt').textContent = 'Sign In';
+    if (fresh) { S.user = { ...fresh }; enterDashboard(); await loadAllData(); setTimeout(checkAndRequestNotification, 1500); }
+    else localStorage.removeItem('r2_userid');
+  } catch(err) { document.getElementById('login-btn').disabled = false; document.getElementById('login-btn-txt').textContent = 'Sign In'; showToast('Session restore failed.'); }
 });
 </script>
 </body>
