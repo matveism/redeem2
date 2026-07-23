@@ -151,7 +151,7 @@
     .sb-off{background:#1f0d0d;color:var(--red)}
     .you-star{color:var(--gold);font-weight:600}
 
-    /* REWARD CARDS - UPDATED */
+    /* REWARD CARDS */
     .rew-grid{padding-left:21px;display:flex;flex-wrap:wrap;gap:14px}
     .rew-wrap{flex:1 1 220px;max-width:340px}
     .rew-hdr{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;transition:border-color .15s}
@@ -162,8 +162,6 @@
     .rew-name{font-weight:600;font-size:15px;color:var(--text);margin-bottom:3px}
     .rew-cost-ok{color:var(--green);font-size:13px;font-weight:700}
     .rew-cost-no{color:#f06060;font-size:13px;font-weight:700}
-    
-    /* Reward Panel - Confirm State */
     .rew-panel-confirm{background:#161616;border:1px solid var(--gold);border-top:none;border-radius:0 0 12px 12px;padding:20px 22px}
     .rew-panel-lock{background:#161616;border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;padding:20px 22px;display:flex;flex-direction:column;gap:14px}
     .rew-panel-revealed{background:#0d1f0d;border:1px solid var(--green);border-top:none;border-radius:0 0 12px 12px;padding:20px 22px}
@@ -741,12 +739,12 @@ function renderEarn() {
   } else if (sn === 2) {
     body = `<div class="st-title">Paste the confirmation link</div>
       <p class="st-desc">Complete the task, then paste the URL of the page you landed on.</p>
-      <input class="step-inp" type="url" id="step-inp" placeholder="https://example.com/page" value="${esc(e.link)}" oninput="S.earn.link=this.value;$('step-next').disabled=!this.value.trim()">
+      <input class="step-inp" type="url" id="step-inp" placeholder="https://example.com/page" value="${esc(e.link)}" oninput="S.earn.link=this.value;document.getElementById('step-next').disabled=!this.value.trim()">
       <button class="btn-out" id="step-next" onclick="earnGo('step3')" ${!e.link.trim()?'disabled':''}>Next <i class="fas fa-chevron-right"></i></button>`;
   } else {
     body = `<div class="st-title">Final verification</div>
       <div class="hint-box"><p class="hint-txt">${esc(e.task.Detail2||'Enter the confirmation code from the task.')}</p></div>
-      <input class="step-inp" id="step-inp" placeholder="Enter your answer" value="${esc(e.final)}" oninput="S.earn.final=this.value;$('step-submit').disabled=!this.value.trim()">
+      <input class="step-inp" id="step-inp" placeholder="Enter your answer" value="${esc(e.final)}" oninput="S.earn.final=this.value;document.getElementById('step-submit').disabled=!this.value.trim()">
       <button class="btn-gold" id="step-submit" onclick="earnSubmit()" ${!e.final.trim()?'disabled':''}>Submit Task</button>`;
   }
 
@@ -784,7 +782,7 @@ function earnStart(id) {
 
 function earnGo(step) { 
   if (step === 'step2') {
-    const inp = $('step-inp');
+    const inp = document.getElementById('step-inp');
     if (inp) S.earn.link = inp.value.trim();
   }
   S.earn.step = step; 
@@ -799,33 +797,63 @@ function earnReset()  {
 
 async function earnSubmit() {
   const e = S.earn;
+  
   // Get final input value
-  const inp = $('step-inp');
+  const inp = document.getElementById('step-inp');
   if (inp) e.final = inp.value.trim();
   
+  // Show loading state
   e.step = 'loading';
   renderEarn();
 
-  const matched = norm(e.link) === norm(e.task.LinkConfirm || '')
-               && norm(e.final) === norm(e.task.FinalConfirm || '');
-
-  if (matched) {
-    const result = await api('completeTask', {
-      taskId: e.task['task#'],
-      userid: S.user.userid,
-      reward: e.task.Reward,
+  try {
+    // Add a timeout to prevent infinite loading
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Verification timed out. Please try again.')), 10000);
     });
-    if (result.success) {
-      updateUserLocal({ onhold: parseFloat(result.newOnHold).toFixed(2) });
-      S.tasks = S.tasks.filter(t => t['task#'] !== e.task['task#']);
-      beginHoldTimer();
-      renderHome();
-    }
-  }
 
-  e.matched = matched;
-  e.step = 'result';
-  renderEarn();
+    // Check if the task matches
+    const matched = norm(e.link) === norm(e.task.LinkConfirm || '')
+                 && norm(e.final) === norm(e.task.FinalConfirm || '');
+
+    if (matched) {
+      // Call API with timeout
+      const result = await Promise.race([
+        api('completeTask', {
+          taskId: e.task['task#'],
+          userid: S.user.userid,
+          reward: e.task.Reward,
+        }),
+        timeoutPromise
+      ]);
+      
+      if (result && result.success) {
+        updateUserLocal({ onhold: parseFloat(result.newOnHold).toFixed(2) });
+        S.tasks = S.tasks.filter(t => t['task#'] !== e.task['task#']);
+        beginHoldTimer();
+        renderHome();
+        e.matched = true;
+      } else {
+        e.matched = false;
+        if (result && result.error) {
+          showToast('Error: ' + result.error);
+        }
+      }
+    } else {
+      e.matched = false;
+    }
+
+    // Show result
+    e.step = 'result';
+    renderEarn();
+    
+  } catch (err) {
+    // Handle errors
+    showToast('Error: ' + err.message);
+    // Go back to step 3 so user can try again
+    e.step = 'step3';
+    renderEarn();
+  }
 }
 
 // ── REDEEM ───────────────────────────────────────────────────
@@ -1004,23 +1032,32 @@ async function submitPromo() {
   $('promo-btn-txt').textContent = 'Redeeming…';
   $('promo-submit-btn').disabled = true;
 
-  const result = await api('redeemPromo', { code, userid: S.user.userid });
+  try {
+    const result = await api('redeemPromo', { code, userid: S.user.userid });
 
-  if (!result.success) {
-    $('promo-err-txt').textContent = result.error || 'Failed to redeem code';
+    if (!result.success) {
+      $('promo-err-txt').textContent = result.error || 'Failed to redeem code';
+      $('promo-err').classList.add('show');
+      $('promo-btn-txt').textContent = 'Redeem Code';
+      $('promo-submit-btn').disabled = false;
+      return;
+    }
+
+    updateUserLocal({ onhold: parseFloat(result.newOnHold).toFixed(2) });
+    beginHoldTimer();
+    $('ms-pts-val').textContent = '+' + result.amount + ' PTS';
+    $('promo-default').classList.add('hidden');
+    $('promo-success').classList.add('show');
+    renderHome();
+    renderRedeem();
+    $('promo-btn-txt').textContent = 'Redeem Code';
+    $('promo-submit-btn').disabled = false;
+  } catch (err) {
+    $('promo-err-txt').textContent = 'Error: ' + err.message;
     $('promo-err').classList.add('show');
     $('promo-btn-txt').textContent = 'Redeem Code';
     $('promo-submit-btn').disabled = false;
-    return;
   }
-
-  updateUserLocal({ onhold: parseFloat(result.newOnHold).toFixed(2) });
-  beginHoldTimer();
-  $('ms-pts-val').textContent = '+' + result.amount + ' PTS';
-  $('promo-default').classList.add('hidden');
-  $('promo-success').classList.add('show');
-  renderHome();
-  renderRedeem();
 }
 
 // ── HOLD TIMER ───────────────────────────────────────────────
@@ -1059,11 +1096,15 @@ function tickCountdown() {
 
 async function releaseHold() {
   if (!S.user) return;
-  const result = await api('releaseHold', { userid: S.user.userid });
-  if (result.success && result.pts !== undefined) {
-    updateUserLocal({ pts: parseFloat(result.pts).toFixed(2), onhold: '0' });
-    renderHome();
-    renderRedeem();
+  try {
+    const result = await api('releaseHold', { userid: S.user.userid });
+    if (result.success && result.pts !== undefined) {
+      updateUserLocal({ pts: parseFloat(result.pts).toFixed(2), onhold: '0' });
+      renderHome();
+      renderRedeem();
+    }
+  } catch (err) {
+    // Silent fail - will retry on next interval
   }
 }
 
@@ -1084,38 +1125,42 @@ function toggleChat() {
 
 async function renderChatMessages() {
   if (!S.user) return;
-  const data    = await api('getMessages');
-  const msgs    = data.messages      || [];
-  const banned  = data.bannedUserids || [];
-  const uid     = S.user.userid;
-  S.isBanned    = banned.includes(uid);
+  try {
+    const data    = await api('getMessages');
+    const msgs    = data.messages      || [];
+    const banned  = data.bannedUserids || [];
+    const uid     = S.user.userid;
+    S.isBanned    = banned.includes(uid);
 
-  $('banned-badge').className = 'banned-badge' + (S.isBanned ? ' show' : '');
-  const sb = $('chat-send-btn'), ci = $('chat-inp');
-  if (S.isBanned) {
-    sb.className = 'chat-send banned';
-    sb.innerHTML = '<i class="fas fa-lock"></i>';
-    ci.className = 'chat-inp ban-inp';
-    ci.placeholder = 'You are banned from chat';
-  } else {
-    sb.className = 'chat-send';
-    sb.innerHTML = '<i class="fas fa-paper-plane"></i>';
-    ci.className = 'chat-inp';
-    ci.placeholder = 'Type a message…';
+    $('banned-badge').className = 'banned-badge' + (S.isBanned ? ' show' : '');
+    const sb = $('chat-send-btn'), ci = $('chat-inp');
+    if (S.isBanned) {
+      sb.className = 'chat-send banned';
+      sb.innerHTML = '<i class="fas fa-lock"></i>';
+      ci.className = 'chat-inp ban-inp';
+      ci.placeholder = 'You are banned from chat';
+    } else {
+      sb.className = 'chat-send';
+      sb.innerHTML = '<i class="fas fa-paper-plane"></i>';
+      ci.className = 'chat-inp';
+      ci.placeholder = 'Type a message…';
+    }
+
+    const cont = $('chat-msgs');
+    const atBottom = cont.scrollHeight - cont.scrollTop - cont.clientHeight < 60;
+
+    if (!msgs.length) { cont.innerHTML = '<p class="chat-empty">No messages yet. Say hi! 👋</p>'; return; }
+    cont.innerHTML = msgs.map(m => {
+      const own = m.userid === uid;
+      return `<div class="chat-msg ${own?'own':'other'}">
+        <span class="msg-uid">${esc(m.userid)}</span>
+        <div class="msg-bubble">${esc(m.message)}</div>
+      </div>`;
+    }).join('');
+    if (atBottom) cont.scrollTop = cont.scrollHeight;
+  } catch (err) {
+    // Silent fail for chat
   }
-
-  const cont = $('chat-msgs');
-  const atBottom = cont.scrollHeight - cont.scrollTop - cont.clientHeight < 60;
-
-  if (!msgs.length) { cont.innerHTML = '<p class="chat-empty">No messages yet. Say hi! 👋</p>'; return; }
-  cont.innerHTML = msgs.map(m => {
-    const own = m.userid === uid;
-    return `<div class="chat-msg ${own?'own':'other'}">
-      <span class="msg-uid">${esc(m.userid)}</span>
-      <div class="msg-bubble">${esc(m.message)}</div>
-    </div>`;
-  }).join('');
-  if (atBottom) cont.scrollTop = cont.scrollHeight;
 }
 
 function onChatInput() {
@@ -1139,8 +1184,12 @@ async function sendChatMsg() {
   sb.disabled = true;
   $('chat-inp').value = '';
   $('ban-err-msg').classList.remove('show');
-  await api('sendMessage', { userid: S.user.userid, message: val });
-  await renderChatMessages();
+  try {
+    await api('sendMessage', { userid: S.user.userid, message: val });
+    await renderChatMessages();
+  } catch (err) {
+    // Silent fail
+  }
   sb.disabled = false;
   $('chat-inp').focus();
 }
