@@ -1561,15 +1561,13 @@ function updateChatNotificationDot(show) {
   show && S.unreadCount > 0 ? dot.classList.add('show') : dot.classList.remove('show');
 }
 
-// ── MENTION & SOUND ─────────────────────────────────────────
-let mentionSound = null;
+// ── MENTION SOUND (Pixabay) ─────────────────────────────────
 function playMentionSound() {
   try {
-    if (!mentionSound) {
-      mentionSound = new Audio('data:audio/wav;base64,UklGRlwAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVoAAACBhY2Z/3Z6e3d/gYiHh35+gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=');
-    }
-    mentionSound.currentTime = 0;
-    mentionSound.play().catch(() => {});
+    // Use the provided Pixabay sound URL directly
+    const audio = new Audio('https://pixabay.com/sound-effects/film-special-effects-new-notification-09-352705/');
+    audio.volume = 0.8;
+    audio.play().catch(() => {});
   } catch(e) {}
 }
 
