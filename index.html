@@ -342,7 +342,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 6px;
-      min-width: 140px;
+      min-width: 180px;
       box-shadow: var(--shadow);
       display: none;
       z-index: 200;
@@ -358,13 +358,15 @@
       background: none;
       border: none;
       border-radius: 50px;
-      color: var(--danger);
+      color: var(--text);
       cursor: pointer;
       font-size: 14px;
       font-weight: 500;
       transition: all 0.15s ease;
     }
-    .dd-item:hover { background: rgba(239, 68, 68, 0.1); }
+    .dd-item:hover { background: rgba(249, 115, 22, 0.1); color: var(--accent); }
+    .dd-item.danger { color: var(--danger); }
+    .dd-item.danger:hover { background: rgba(239, 68, 68, 0.1); }
 
     /* ---------- Content ---------- */
     .page-content {
@@ -1011,6 +1013,17 @@
       border-color: transparent;
       border-radius: 18px 18px 4px 18px;
     }
+    .msg-bubble .mention {
+      background: rgba(249, 115, 22, 0.25);
+      color: var(--accent-glow);
+      padding: 0 6px;
+      border-radius: 8px;
+      font-weight: 700;
+    }
+    .chat-msg.own .msg-bubble .mention {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+    }
     .chat-inp-area {
       padding: 14px 18px 18px;
       border-top: 1px solid var(--border);
@@ -1030,7 +1043,7 @@
       font-weight: 600;
     }
     .ban-err-msg.show { display: flex; }
-    .chat-inp-row { display: flex; gap: 10px; }
+    .chat-inp-row { display: flex; gap: 10px; align-items: center; position: relative; }
     .chat-inp {
       flex: 1;
       background: rgba(15, 23, 42, 0.55);
@@ -1064,6 +1077,38 @@
     .chat-send:hover { transform: scale(1.05); }
     .chat-send:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
     .chat-send.banned { background: var(--surface-light); color: var(--text-dim); }
+
+    /* mention suggestions */
+    .mention-suggest {
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 0;
+      background: var(--surface-solid);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      max-height: 150px;
+      overflow-y: auto;
+      min-width: 160px;
+      display: none;
+      z-index: 300;
+      box-shadow: var(--shadow);
+      padding: 4px;
+    }
+    .mention-suggest.show { display: block; }
+    .mention-suggest .ms-item {
+      padding: 8px 14px;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      transition: 0.1s;
+    }
+    .mention-suggest .ms-item:hover,
+    .mention-suggest .ms-item.active {
+      background: rgba(249, 115, 22, 0.15);
+      color: var(--accent);
+    }
 
     /* ---------- Toast ---------- */
     .toast {
@@ -1148,6 +1193,51 @@
       .login-logo { font-size: 36px; }
       .login-card { padding: 28px 22px; }
     }
+    /* USD / GBP toggle label */
+    .currency-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 14px;
+      border-top: 1px solid var(--border);
+      margin-top: 4px;
+      padding-top: 10px;
+    }
+    .currency-toggle span {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: var(--surface-light);
+      border-radius: 40px;
+      cursor: pointer;
+      transition: background 0.2s;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .toggle-switch.active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .toggle-switch .toggle-knob {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+    .toggle-switch.active .toggle-knob {
+      left: 22px;
+    }
   </style>
 </head>
 <body>
@@ -1173,6 +1263,10 @@
     <div class="pts-row">
       <span><span class="onhold-lbl">On Hold:</span> <span class="onhold-amt" id="tb-onhold">0.00</span> <span class="onhold-lbl">PTS</span><span class="countdown" id="tb-countdown" style="display:none"></span></span>
       <span class="pts-main" id="tb-pts-wrap"><span id="tb-pts">0.00</span> <small>PTS</small></span>
+      <span id="tb-fiat-wrap" style="font-weight:600;font-size:16px;color:var(--accent);background:rgba(249,115,22,0.1);padding:4px 12px;border-radius:40px;border:1px solid var(--border);display:inline-flex;align-items:center;gap:6px;">
+        <i class="fas fa-dollar-sign" id="fiat-icon"></i>
+        <span id="tb-fiat">0.00</span>
+      </span>
     </div>
   </div>
 
@@ -1191,7 +1285,12 @@
       <div class="user-chip" id="user-chip" onclick="toggleUserDD()">
         <div class="avatar"><i class="fas fa-headphones"></i></div>
         <span id="chip-name">User</span>
-        <div class="user-dd" id="user-dd"><button class="dd-item" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Log Out</button></div>
+        <div class="user-dd" id="user-dd">
+          <button class="dd-item" onclick="toggleCurrency()" style="font-weight:600;">
+            <i class="fas fa-exchange-alt"></i> <span id="dd-currency-label">USD</span>
+          </button>
+          <button class="dd-item danger" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Log Out</button>
+        </div>
       </div>
     </div>
   </nav>
@@ -1302,8 +1401,9 @@
   <div class="chat-inp-area">
     <div class="ban-err-msg" id="ban-err-msg"><i class="fas fa-lock"></i> Banned — cannot send.</div>
     <div class="chat-inp-row">
-      <input class="chat-inp" type="text" id="chat-inp" placeholder="Type a message…" onkeydown="chatEnter(event)" oninput="onChatInput()">
+      <input class="chat-inp" type="text" id="chat-inp" placeholder="Type a message… @mention" onkeydown="chatEnter(event)" oninput="onChatInput()" autocomplete="off">
       <button class="chat-send" id="chat-send-btn" onclick="sendChatMsg()"><i class="fas fa-paper-plane"></i></button>
+      <div class="mention-suggest" id="mention-suggest"></div>
     </div>
   </div>
 </div>
@@ -1317,6 +1417,36 @@
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMX3Sg8TPBeQrBA-YiCASGC_pUXCLx-4nUM0dGxFXa0vy3v8K9hRxkRhEygliaE6ey/exec';
 // =============================================================
 
+// ── CURRENCY STATE ───────────────────────────────────────────
+let currencyMode = 'USD'; // 'USD' or 'GBP'
+const USD_RATE = 0.01;    // 1 PTS = 0.01 USD
+const GBP_RATE = 0.0075;  // 1 PTS = 0.0075 GBP
+
+function getFiatValue(pts) {
+  const val = parseFloat(pts) || 0;
+  return currencyMode === 'USD' ? val * USD_RATE : val * GBP_RATE;
+}
+
+function getFiatSymbol() {
+  return currencyMode === 'USD' ? '$' : '£';
+}
+
+function toggleCurrency() {
+  currencyMode = (currencyMode === 'USD' ? 'GBP' : 'USD');
+  localStorage.setItem('r2_currency', currencyMode);
+  document.getElementById('dd-currency-label').textContent = currencyMode;
+  updateFiatDisplay();
+  updateHomeStats();
+}
+
+function updateFiatDisplay() {
+  const pts = parseFloat(S.user?.pts) || 0;
+  const fiatVal = getFiatValue(pts);
+  document.getElementById('tb-fiat').textContent = getFiatSymbol() + fiatVal.toFixed(2);
+  document.getElementById('fiat-icon').className = currencyMode === 'USD' ? 'fas fa-dollar-sign' : 'fas fa-pound-sign';
+}
+
+// ── API ──────────────────────────────────────────────────────
 function api(action, params = {}) {
   return new Promise((resolve, reject) => {
     try {
@@ -1431,6 +1561,18 @@ function updateChatNotificationDot(show) {
   show && S.unreadCount > 0 ? dot.classList.add('show') : dot.classList.remove('show');
 }
 
+// ── MENTION & SOUND ─────────────────────────────────────────
+let mentionSound = null;
+function playMentionSound() {
+  try {
+    if (!mentionSound) {
+      mentionSound = new Audio('data:audio/wav;base64,UklGRlwAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVoAAACBhY2Z/3Z6e3d/gYiHh35+gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=');
+    }
+    mentionSound.currentTime = 0;
+    mentionSound.play().catch(() => {});
+  } catch(e) {}
+}
+
 // ── AUTH ─────────────────────────────────────────────────────
 async function doLogin() {
   const uid = $('li-uid').value.trim();
@@ -1446,6 +1588,9 @@ async function doLogin() {
     if (!result.success || !result.user) { showLoginErr(result.error || 'Login failed.'); return; }
     S.user = { ...result.user };
     localStorage.setItem('r2_userid', S.user.userid);
+    const savedCurr = localStorage.getItem('r2_currency');
+    if (savedCurr) currencyMode = savedCurr;
+    document.getElementById('dd-currency-label').textContent = currencyMode;
     enterDashboard();
     await loadAllData();
     setTimeout(checkAndRequestNotification, 1000);
@@ -1520,6 +1665,7 @@ function enterDashboard() {
   $('chat-fab').classList.add('show');
   $('chip-name').textContent = S.user.userid;
   updateHeader();
+  updateFiatDisplay();
   const exp = parseInt(localStorage.getItem('r2_hold_expiry_' + S.user.userid) || '0');
   if (exp > Date.now()) { S.holdExpiry = exp; startCountdown(); }
   else if (exp > 0) { localStorage.removeItem('r2_hold_expiry_' + S.user.userid); releaseHold(); }
@@ -1533,6 +1679,7 @@ async function loadAllData() {
     S.rewards = Array.isArray(rewards) ? rewards : [];
     S.users = Array.isArray(users) ? users : [];
     renderHome(); renderEarn(); renderRedeem(); renderLeaderboard();
+    updateFiatDisplay();
   } catch(err) { showToast('Error loading data: ' + err.message); }
 }
 
@@ -1557,19 +1704,23 @@ function updateUserLocal(updates) {
   const idx = S.users.findIndex(u => u.userid === S.user.userid);
   if (idx >= 0) Object.assign(S.users[idx], updates);
   updateHeader();
+  updateFiatDisplay();
 }
 
 function renderHome() {
   const u = S.user; if (!u) return;
   const pts = parseFloat(u.pts) || 0;
   const isNeg = pts < 0;
+  const fiatVal = getFiatValue(pts);
   $('home-stats').innerHTML =
     `<div class="stat-card"><div class="s-lbl">Your PTS</div><div class="s-val ${isNeg ? 'negative' : ''}">${fmt(pts)}</div></div>
      <div class="stat-card"><div class="s-lbl">On Hold</div><div class="s-val gold">${fmt(u.onhold)}</div>${S.holdExpiry ? '<div class="s-note" id="home-cd"></div>' : ''}</div>
+     <div class="stat-card"><div class="s-lbl">Value (${currencyMode})</div><div class="s-val gold">${getFiatSymbol()}${fiatVal.toFixed(2)}</div></div>
      <div class="stat-card"><div class="s-lbl">Members</div><div class="s-val">${S.users.length}</div></div>
      <div class="stat-card"><div class="s-lbl">Tasks</div><div class="s-val">${S.tasks.length}</div></div>
      <div class="stat-card"><div class="s-lbl">Promo Codes</div><div class="s-val">${S.promos.length}</div></div>`;
 }
+function updateHomeStats() { renderHome(); }
 
 function renderEarn() {
   const c = $('earn-container'); if (!c) return;
@@ -1797,6 +1948,71 @@ async function releaseHold() {
   } catch(err) {}
 }
 
+// ── CHAT WITH MENTIONS ──────────────────────────────────────
+let mentionIndex = -1;
+let mentionUsers = [];
+
+function updateMentionSuggest(input) {
+  const val = input.value;
+  const lastAt = val.lastIndexOf('@');
+  if (lastAt === -1) {
+    $('mention-suggest').classList.remove('show');
+    mentionUsers = [];
+    mentionIndex = -1;
+    return;
+  }
+  const query = val.substring(lastAt + 1).toLowerCase();
+  const allUsers = S.users ? S.users.map(u => u.userid).filter(id => id !== S.user.userid) : [];
+  const matched = allUsers.filter(u => u.toLowerCase().includes(query)).slice(0, 5);
+  const sug = $('mention-suggest');
+  if (matched.length === 0 || !query) {
+    sug.classList.remove('show');
+    mentionUsers = [];
+    mentionIndex = -1;
+    return;
+  }
+  mentionUsers = matched;
+  mentionIndex = -1;
+  sug.innerHTML = matched.map((u, i) => `<div class="ms-item" data-idx="${i}" onclick="selectMention('${u}')">@${esc(u)}</div>`).join('');
+  sug.classList.add('show');
+}
+
+function selectMention(username) {
+  const input = $('chat-inp');
+  const val = input.value;
+  const lastAt = val.lastIndexOf('@');
+  if (lastAt === -1) return;
+  const before = val.substring(0, lastAt);
+  const after = val.substring(lastAt + val.substring(lastAt).indexOf(' ') + 1);
+  input.value = before + '@' + username + ' ' + after;
+  $('mention-suggest').classList.remove('show');
+  mentionUsers = [];
+  mentionIndex = -1;
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+}
+
+function onChatInput() {
+  const input = $('chat-inp');
+  const val = input.value;
+  const err = $('ban-err-msg');
+  if (S.isBanned && val.length > 0) { err.classList.add('show'); input.style.borderColor = 'var(--danger)'; }
+  else { err.classList.remove('show'); input.style.borderColor = ''; }
+  updateMentionSuggest(input);
+}
+
+function chatEnter(e) {
+  if (e.key === 'Enter') {
+    if ($('mention-suggest').classList.contains('show')) {
+      if (mentionIndex >= 0 && mentionIndex < mentionUsers.length) {
+        selectMention(mentionUsers[mentionIndex]);
+        return;
+      }
+    }
+    sendChatMsg();
+  }
+}
+
 function toggleChat() {
   S.chatOpen = !S.chatOpen;
   $('chat-panel').classList.toggle('open', S.chatOpen);
@@ -1809,49 +2025,63 @@ function toggleChat() {
     setTimeout(() => $('chat-inp').focus(), 80);
   } else { if (S.chatPoll) clearInterval(S.chatPoll); S.chatPoll = null; }
 }
-async function renderChatMessages() {
+
+function renderChatMessages() {
   if (!S.user) return;
   try {
-    const data = await api('getMessages');
-    const msgs = data.messages || [];
-    const banned = data.bannedUserids || [];
-    const uid = S.user.userid;
-    S.isBanned = banned.includes(uid);
-    $('banned-badge').className = 'banned-badge' + (S.isBanned ? ' show' : '');
-    const sb = $('chat-send-btn'), ci = $('chat-inp');
-    if (S.isBanned) {
-      sb.className = 'chat-send banned'; sb.innerHTML = '<i class="fas fa-lock"></i>'; ci.className = 'chat-inp ban-inp'; ci.placeholder = 'Banned from chat';
-    } else {
-      sb.className = 'chat-send'; sb.innerHTML = '<i class="fas fa-paper-plane"></i>'; ci.className = 'chat-inp'; ci.placeholder = 'Type a message…';
-    }
-    const cont = $('chat-msgs');
-    const atBottom = cont.scrollHeight - cont.scrollTop - cont.clientHeight < 60;
-    const currentCount = msgs.length;
-    const isChatOpen = $('chat-panel').classList.contains('open');
-    if (currentCount > S.lastMessageCount && S.lastMessageCount > 0) {
-      const newMsgs = msgs.slice(S.lastMessageCount);
-      const otherUserMsgs = newMsgs.filter(m => m.userid !== uid);
-      if (otherUserMsgs.length > 0 && !isChatOpen) {
-        S.unreadCount += otherUserMsgs.length;
-        updateChatNotificationDot(true);
-        const lastMsg = otherUserMsgs[otherUserMsgs.length - 1];
-        sendBrowserNotification(`💬 New message from ${lastMsg.userid}`, lastMsg.message.length > 50 ? lastMsg.message.substring(0, 50) + '...' : lastMsg.message, 'chat-' + Date.now());
-        if (navigator.vibrate) navigator.vibrate(100);
+    const data = api('getMessages');
+    data.then(d => {
+      const msgs = d.messages || [];
+      const banned = d.bannedUserids || [];
+      const uid = S.user.userid;
+      S.isBanned = banned.includes(uid);
+      $('banned-badge').className = 'banned-badge' + (S.isBanned ? ' show' : '');
+      const sb = $('chat-send-btn'), ci = $('chat-inp');
+      if (S.isBanned) {
+        sb.className = 'chat-send banned'; sb.innerHTML = '<i class="fas fa-lock"></i>'; ci.className = 'chat-inp ban-inp'; ci.placeholder = 'Banned from chat';
+      } else {
+        sb.className = 'chat-send'; sb.innerHTML = '<i class="fas fa-paper-plane"></i>'; ci.className = 'chat-inp'; ci.placeholder = 'Type a message… @mention';
       }
-    }
-    S.lastMessageCount = currentCount;
-    if (!msgs.length) { cont.innerHTML = '<p class="chat-empty">No messages yet. Say hi! 👋</p>'; return; }
-    cont.innerHTML = msgs.map(m => `<div class="chat-msg ${m.userid === uid ? 'own' : 'other'}"><span class="msg-uid">${esc(m.userid)}</span><div class="msg-bubble">${esc(m.message)}</div></div>`).join('');
-    if (atBottom) cont.scrollTop = cont.scrollHeight;
+      const cont = $('chat-msgs');
+      const atBottom = cont.scrollHeight - cont.scrollTop - cont.clientHeight < 60;
+      const currentCount = msgs.length;
+      const isChatOpen = $('chat-panel').classList.contains('open');
+      // detect mentions for current user
+      if (currentCount > S.lastMessageCount && S.lastMessageCount > 0) {
+        const newMsgs = msgs.slice(S.lastMessageCount);
+        const mentions = newMsgs.filter(m => m.userid !== uid && m.message && m.message.includes('@' + uid));
+        if (mentions.length > 0) {
+          playMentionSound();
+          if (!isChatOpen) {
+            S.unreadCount += mentions.length;
+            updateChatNotificationDot(true);
+          }
+          sendBrowserNotification('🔔 You were mentioned!', `@${mentions[0].userid} mentioned you`, 'mention-' + Date.now());
+        }
+      }
+      S.lastMessageCount = currentCount;
+      if (!msgs.length) { cont.innerHTML = '<p class="chat-empty">No messages yet. Say hi! 👋</p>'; return; }
+      const html = msgs.map(m => {
+        let msg = esc(m.message);
+        // highlight mentions
+        const mentionRegex = /@(\w+)/g;
+        const parts = msg.split(mentionRegex);
+        let parsed = '';
+        for (let i = 0; i < parts.length; i++) {
+          if (i % 2 === 1) {
+            parsed += `<span class="mention">@${parts[i]}</span>`;
+          } else {
+            parsed += parts[i];
+          }
+        }
+        return `<div class="chat-msg ${m.userid === uid ? 'own' : 'other'}"><span class="msg-uid">${esc(m.userid)}</span><div class="msg-bubble">${parsed}</div></div>`;
+      }).join('');
+      cont.innerHTML = html;
+      if (atBottom) cont.scrollTop = cont.scrollHeight;
+    }).catch(() => {});
   } catch(err) {}
 }
-function onChatInput() {
-  const val = $('chat-inp').value;
-  const err = $('ban-err-msg');
-  if (S.isBanned && val.length > 0) { err.classList.add('show'); $('chat-inp').style.borderColor = 'var(--danger)'; }
-  else { err.classList.remove('show'); $('chat-inp').style.borderColor = ''; }
-}
-function chatEnter(e) { if (e.key === 'Enter') sendChatMsg(); }
+
 async function sendChatMsg() {
   if (!S.user || S.isBanned) return;
   const val = $('chat-inp').value.trim();
@@ -1859,6 +2089,7 @@ async function sendChatMsg() {
   const sb = $('chat-send-btn');
   sb.disabled = true;
   $('chat-inp').value = '';
+  $('mention-suggest').classList.remove('show');
   $('ban-err-msg').classList.remove('show');
   try { await api('sendMessage', { userid: S.user.userid, message: val }); await renderChatMessages(); } catch(err) {}
   sb.disabled = false;
@@ -1869,10 +2100,33 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && $('login-screen').style.display !== 'none') doLogin();
   if (e.key === 'Enter' && $('promo-overlay').classList.contains('show')) submitPromo();
   if (e.key === 'Escape') { closePromo(); $('user-dd').classList.remove('open'); }
+  // mention navigation
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    const sug = $('mention-suggest');
+    if (sug.classList.contains('show') && mentionUsers.length) {
+      e.preventDefault();
+      const items = sug.querySelectorAll('.ms-item');
+      if (e.key === 'ArrowDown') {
+        mentionIndex = (mentionIndex + 1) % mentionUsers.length;
+      } else {
+        mentionIndex = (mentionIndex - 1 + mentionUsers.length) % mentionUsers.length;
+      }
+      items.forEach((el, i) => el.classList.toggle('active', i === mentionIndex));
+    }
+  }
+  if (e.key === 'Tab' && $('mention-suggest').classList.contains('show')) {
+    e.preventDefault();
+    if (mentionIndex >= 0 && mentionIndex < mentionUsers.length) {
+      selectMention(mentionUsers[mentionIndex]);
+    }
+  }
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
   const savedUid = localStorage.getItem('r2_userid');
+  const savedCurr = localStorage.getItem('r2_currency');
+  if (savedCurr) currencyMode = savedCurr;
+  document.getElementById('dd-currency-label').textContent = currencyMode;
   if (!savedUid) return;
   $('login-btn').disabled = true;
   $('login-btn-txt').textContent = 'Restoring…';
