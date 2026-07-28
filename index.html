@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-  <title>Reedem2 · Dashboard</title>
+  <title>Redeem2 · Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
-    /* ... (your existing CSS) ... */
     :root {
       --bg-1: #0f172a;
       --bg-2: #1e293b;
@@ -273,6 +272,19 @@
     .notif-permission-toast button:hover { background: var(--accent-glow); }
     .notif-permission-toast button:last-child { background: transparent; color: var(--text-muted); margin-left: 6px; }
     .notif-permission-toast button:last-child:hover { color: var(--text); }
+    .currency-toggle { display: flex; align-items: center; gap: 10px; padding: 6px 14px; border-top: 1px solid var(--border); margin-top: 4px; padding-top: 10px; }
+    .currency-toggle span { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .toggle-switch { position: relative; width: 44px; height: 24px; background: var(--surface-light); border-radius: 40px; cursor: pointer; transition: background 0.2s; border: 1px solid var(--border); flex-shrink: 0; }
+    .toggle-switch.active { background: var(--accent); border-color: var(--accent); }
+    .toggle-switch .toggle-knob { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: 0.2s; }
+    .toggle-switch.active .toggle-knob { left: 22px; }
+
+    /* Add completion rate indicator */
+    .completion-rate { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 50px; font-size: 13px; font-weight: 700; }
+    .completion-rate.good { background: rgba(34, 197, 94, 0.12); color: var(--success); }
+    .completion-rate.warning { background: rgba(249, 115, 22, 0.12); color: var(--accent); }
+    .completion-rate.danger { background: rgba(239, 68, 68, 0.12); color: var(--danger); }
+
     @media (max-width: 720px) {
       .top-bar { flex-direction: column; align-items: stretch; gap: 8px; padding: 14px 18px; }
       .pts-row { justify-content: space-between; }
@@ -300,12 +312,6 @@
       .login-logo { font-size: 36px; }
       .login-card { padding: 28px 22px; }
     }
-    .currency-toggle { display: flex; align-items: center; gap: 10px; padding: 6px 14px; border-top: 1px solid var(--border); margin-top: 4px; padding-top: 10px; }
-    .currency-toggle span { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-    .toggle-switch { position: relative; width: 44px; height: 24px; background: var(--surface-light); border-radius: 40px; cursor: pointer; transition: background 0.2s; border: 1px solid var(--border); flex-shrink: 0; }
-    .toggle-switch.active { background: var(--accent); border-color: var(--accent); }
-    .toggle-switch .toggle-knob { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: 0.2s; }
-    .toggle-switch.active .toggle-knob { left: 22px; }
   </style>
 </head>
 <body>
@@ -316,7 +322,7 @@
   <div class="login-card">
     <div class="err-box hidden" id="login-err"><i class="fas fa-exclamation-circle"></i><span id="login-err-msg"></span></div>
     <label class="lf-label" for="li-uid">User ID</label>
-    <input class="form-input" type="text" id="li-uid" placeholder="e.g. U001" autocomplete="username">
+    <input class="form-input" type="text" id="li-uid" placeholder="e.g. IML" autocomplete="username">
     <label class="lf-label" for="li-pw">Password</label>
     <input class="form-input" type="password" id="li-pw" placeholder="••••••••" autocomplete="current-password" style="margin-bottom:28px">
     <button class="login-btn" id="login-btn" onclick="doLogin()"><span id="login-btn-txt">Sign In</span></button>
@@ -335,6 +341,7 @@
         <i class="fas fa-dollar-sign" id="fiat-icon"></i>
         <span id="tb-fiat">0.00</span>
       </span>
+      <span class="completion-rate good" id="tb-completion">100%</span>
     </div>
   </div>
 
@@ -486,9 +493,9 @@ const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMX3Sg8TPBeQrBA
 // =============================================================
 
 // ── CURRENCY STATE ───────────────────────────────────────────
-let currencyMode = 'USD'; // 'USD' or 'GBP'
-const USD_RATE = 0.01;    // 1 PTS = 0.01 USD
-const GBP_RATE = 0.0075;  // 1 PTS = 0.0075 GBP
+let currencyMode = 'USD';
+const USD_RATE = 0.01;
+const GBP_RATE = 0.0075;
 
 function getFiatValue(pts) {
   const val = parseFloat(pts) || 0;
@@ -585,6 +592,24 @@ function safeString(value) {
 
 // ── NOTIFICATIONS ────────────────────────────────────────────
 function checkNotificationSupport() { return 'Notification' in window; }
+
+// RING SOUND FUNCTION - plays when mentioned
+function playRingSound() {
+  try {
+    // Use multiple sound sources for reliability
+    const audio = new Audio();
+    audio.src = 'https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a7346b.mp3?filename=notification-sound-7062.mp3';
+    audio.volume = 1.0;
+    audio.play().catch(() => {
+      // Fallback: try another source
+      const audio2 = new Audio();
+      audio2.src = 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3';
+      audio2.volume = 1.0;
+      audio2.play().catch(() => {});
+    });
+  } catch(e) {}
+}
+
 async function requestNotificationPermission() {
   if (!checkNotificationSupport()) { showToast('Notifications not supported.'); return; }
   try {
@@ -598,6 +623,7 @@ async function requestNotificationPermission() {
     } else if (permission === 'denied') showToast('❌ Notification denied.');
   } catch (err) { showToast('Error: ' + err.message); }
 }
+
 function sendBrowserNotification(title, body, tag) {
   if (!checkNotificationSupport() || Notification.permission !== 'granted') return false;
   try {
@@ -612,6 +638,7 @@ function sendBrowserNotification(title, body, tag) {
     return true;
   } catch (err) { return false; }
 }
+
 function checkAndRequestNotification() {
   const saved = localStorage.getItem('r2_notification_permission');
   if (saved) S.notificationPermission = saved;
@@ -620,23 +647,15 @@ function checkAndRequestNotification() {
     setTimeout(() => $('notif-permission-toast').classList.add('show'), 3000);
   }
 }
+
 function dismissNotificationToast() {
   $('notif-permission-toast').classList.remove('show');
   localStorage.setItem('r2_notification_dismissed', 'true');
 }
+
 function updateChatNotificationDot(show) {
   const dot = $('chat-notif-dot');
   show && S.unreadCount > 0 ? dot.classList.add('show') : dot.classList.remove('show');
-}
-
-// ── MENTION SOUND (Pixabay) ─────────────────────────────────
-function playMentionSound() {
-  try {
-    // Use a reliable, short notification sound from Pixabay
-    const audio = new Audio('https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a7346b.mp3?filename=notification-sound-7062.mp3');
-    audio.volume = 0.9;
-    audio.play().catch(() => {});
-  } catch(e) {}
 }
 
 // ── AUTH ─────────────────────────────────────────────────────
@@ -659,6 +678,8 @@ async function doLogin() {
     document.getElementById('dd-currency-label').textContent = currencyMode;
     enterDashboard();
     await loadAllData();
+    // Start checking for new messages with ring notification
+    startMessagePolling();
     setTimeout(checkAndRequestNotification, 1000);
   } catch (err) {
     $('login-btn').disabled = false;
@@ -666,11 +687,13 @@ async function doLogin() {
     showLoginErr('Connection error: ' + err.message);
   }
 }
+
 function showLoginErr(msg) {
   const err = $('login-err');
   err.classList.remove('hidden');
   $('login-err-msg').textContent = msg;
 }
+
 function hideLoginErr() { $('login-err').classList.add('hidden'); }
 
 async function testConnection() {
@@ -699,12 +722,13 @@ async function testConnection() {
 async function doLogout() {
   if (S.holdTimer) clearInterval(S.holdTimer);
   if (S.chatPoll) clearInterval(S.chatPoll);
+  if (S.messagePoll) clearInterval(S.messagePoll);
   if (S.user) localStorage.removeItem('r2_hold_expiry_' + S.user.userid);
   localStorage.removeItem('r2_userid');
   S = {
     user: null, tasks: [], promos: [], rewards: [], users: [],
     isBanned: false, earn: { step: 'list', task: null, link: '', final: '', matched: false },
-    expandedReward: null, chatOpen: false, chatPoll: null,
+    expandedReward: null, chatOpen: false, chatPoll: null, messagePoll: null,
     holdTimer: null, holdExpiry: null, lastMessageCount: 0, unreadCount: 0,
     notificationPermission: 'default'
   };
@@ -732,20 +756,34 @@ function enterDashboard() {
   $('chip-name').textContent = S.user.userid;
   updateHeader();
   updateFiatDisplay();
+  updateCompletionRate();
   const exp = parseInt(localStorage.getItem('r2_hold_expiry_' + S.user.userid) || '0');
   if (exp > Date.now()) { S.holdExpiry = exp; startCountdown(); }
   else if (exp > 0) { localStorage.removeItem('r2_hold_expiry_' + S.user.userid); releaseHold(); }
 }
 
+function updateCompletionRate() {
+  const rate = parseFloat(S.user?.CompletionRate || 100);
+  const el = $('tb-completion');
+  el.textContent = rate.toFixed(1) + '%';
+  el.className = 'completion-rate ' + (rate >= 90 ? 'good' : rate >= 75 ? 'warning' : 'danger');
+}
+
 async function loadAllData() {
   try {
-    const [tasks, promos, rewards, users] = await Promise.all([api('getTasks'), api('getPromos'), api('getRewards'), api('getUsers')]);
+    const [tasks, promos, rewards, users] = await Promise.all([
+      api('getTasks', { userid: S.user.userid }),
+      api('getPromos'),
+      api('getRewards'),
+      api('getUsers')
+    ]);
     S.tasks = Array.isArray(tasks) ? tasks : [];
     S.promos = Array.isArray(promos) ? promos : [];
     S.rewards = Array.isArray(rewards) ? rewards : [];
     S.users = Array.isArray(users) ? users : [];
     renderHome(); renderEarn(); renderRedeem(); renderLeaderboard();
     updateFiatDisplay();
+    updateCompletionRate();
   } catch(err) { showToast('Error loading data: ' + err.message); }
 }
 
@@ -763,6 +801,7 @@ function updateHeader() {
   $('tb-pts').textContent = fmt(pts);
   $('tb-pts-wrap').className = 'pts-main' + (pts < 0 ? ' negative' : '');
   $('tb-onhold').textContent = fmt(S.user.onhold);
+  updateCompletionRate();
 }
 
 function updateUserLocal(updates) {
@@ -771,6 +810,7 @@ function updateUserLocal(updates) {
   if (idx >= 0) Object.assign(S.users[idx], updates);
   updateHeader();
   updateFiatDisplay();
+  updateCompletionRate();
 }
 
 function renderHome() {
@@ -778,21 +818,23 @@ function renderHome() {
   const pts = parseFloat(u.pts) || 0;
   const isNeg = pts < 0;
   const fiatVal = getFiatValue(pts);
+  const rate = parseFloat(u.CompletionRate || 100);
   $('home-stats').innerHTML =
     `<div class="stat-card"><div class="s-lbl">Your PTS</div><div class="s-val ${isNeg ? 'negative' : ''}">${fmt(pts)}</div></div>
      <div class="stat-card"><div class="s-lbl">On Hold</div><div class="s-val gold">${fmt(u.onhold)}</div>${S.holdExpiry ? '<div class="s-note" id="home-cd"></div>' : ''}</div>
      <div class="stat-card"><div class="s-lbl">Value (${currencyMode})</div><div class="s-val gold">${getFiatSymbol()}${fiatVal.toFixed(2)}</div></div>
-     <div class="stat-card"><div class="s-lbl">Members</div><div class="s-val">${S.users.length}</div></div>
+     <div class="stat-card"><div class="s-lbl">Completion Rate</div><div class="s-val" style="color:${rate >= 90 ? 'var(--success)' : rate >= 75 ? 'var(--accent)' : 'var(--danger)'}">${rate.toFixed(1)}%</div></div>
      <div class="stat-card"><div class="s-lbl">Tasks</div><div class="s-val">${S.tasks.length}</div></div>
      <div class="stat-card"><div class="s-lbl">Promo Codes</div><div class="s-val">${S.promos.length}</div></div>`;
 }
+
 function updateHomeStats() { renderHome(); }
 
 function renderEarn() {
   const c = $('earn-container'); if (!c) return;
   const e = S.earn;
   if (e.step === 'list') {
-    if (!S.tasks || !S.tasks.length) { c.innerHTML = '<p class="empty-msg">No tasks available.</p>'; return; }
+    if (!S.tasks || !S.tasks.length) { c.innerHTML = '<p class="empty-msg">No tasks available for your account.</p>'; return; }
     c.innerHTML = S.tasks.map(t => {
       const details = safeString(t.Details || 'Complete the task as described.');
       const firstLine = details.split('\n')[0] || details;
@@ -841,16 +883,19 @@ function earnStart(id) {
   S.earn = { step: 'step1', task: t, link: '', final: '', matched: false };
   renderEarn();
 }
+
 function earnGo(step) {
   const inp = $('step-inp');
   if (inp && step === 'step2') S.earn.link = inp.value.trim();
   S.earn.step = step;
   renderEarn();
 }
+
 function earnReset() {
   S.earn = { step: 'list', task: null, link: '', final: '', matched: false };
   renderEarn(); renderHome();
 }
+
 async function earnSubmit() {
   const e = S.earn;
   const inp = $('step-inp');
@@ -865,11 +910,17 @@ async function earnSubmit() {
       const result = await Promise.race([api('completeTask', { taskId: e.task['task#'], userid: S.user.userid, reward: e.task.Reward }), timeoutPromise]);
       if (result && result.success) {
         const newOnHold = parseFloat(result.newOnHold || 0);
-        updateUserLocal({ onhold: fmt(newOnHold), pts: fmt(parseFloat(result.newPts || S.user.pts || 0)) });
+        const newRate = parseFloat(result.completionRate || 100);
+        updateUserLocal({ 
+          onhold: fmt(newOnHold), 
+          pts: fmt(parseFloat(result.newPts || S.user.pts || 0)),
+          CompletionRate: newRate
+        });
         S.tasks = S.tasks.filter(t => t['task#'] !== e.task['task#']);
         beginHoldTimer(); renderHome(); e.matched = true;
         showToast('✅ Task completed! +' + e.task.Reward + ' PTS');
         sendBrowserNotification('✅ Task Complete!', 'You earned +' + e.task.Reward + ' PTS!');
+        updateCompletionRate();
       } else { e.matched = false; if (result && result.error) showToast('Error: ' + result.error); }
     } else { e.matched = false; showToast('Verification failed. Please check your inputs.'); }
     e.step = 'result'; renderEarn();
@@ -899,11 +950,13 @@ function renderRedeem() {
     return `<div class="rew-wrap"><div class="rew-hdr${open ? ' open' : ''}" onclick="toggleReward('${safeName}')"><div style="display:flex;align-items:center;gap:14px;"><div class="rew-icon"><i class="${iconClass}" style="color:${iconColor};"></i></div><div><div class="rew-name">${esc(r.reward_name)} ${revealed ? '✅' : ''}</div><div class="${canAfford && !revealed ? 'rew-cost-ok' : 'rew-cost-no'}">${esc(r.cost)} PTS</div></div></div><i class="fas fa-chevron-${open ? 'up' : 'down'}" style="color:var(--text-dim);"></i></div>${panel}</div>`;
   }).join('');
 }
+
 function toggleReward(name) {
   if (S.expandedReward === name) { S.expandedReward = null; }
   else { S.rewards.forEach(r => { if (r.reward_name !== name) r._revealed = false; }); S.expandedReward = name; }
   renderRedeem();
 }
+
 async function confirmReward(name) {
   const reward = S.rewards.find(r => r.reward_name === name);
   if (!reward) { showToast('Reward not found.'); return; }
@@ -940,8 +993,11 @@ function openPromo() {
   $('user-dd').classList.remove('open');
   setTimeout(() => $('promo-input').focus(), 80);
 }
+
 function closePromo() { $('promo-overlay').classList.remove('show'); }
+
 function closePromoOnBg(e) { if (e.target === $('promo-overlay')) closePromo(); }
+
 async function submitPromo() {
   const code = $('promo-input').value.trim().toLowerCase();
   if (!code) return;
@@ -978,11 +1034,13 @@ function beginHoldTimer() {
   startCountdown();
   renderHome();
 }
+
 function startCountdown() {
   if (S.holdTimer) clearInterval(S.holdTimer);
   S.holdTimer = setInterval(tickCountdown, 1000);
   tickCountdown();
 }
+
 function tickCountdown() {
   if (!S.holdExpiry) { clearInterval(S.holdTimer); return; }
   const rem = S.holdExpiry - Date.now();
@@ -1001,6 +1059,7 @@ function tickCountdown() {
   const hcd = $('home-cd');
   if (hcd) hcd.textContent = '⏱ ' + txt;
 }
+
 async function releaseHold() {
   if (!S.user) return;
   try {
@@ -1012,6 +1071,55 @@ async function releaseHold() {
       sendBrowserNotification('💰 Points Released!', 'On Hold added to balance.');
     }
   } catch(err) {}
+}
+
+// ── MESSAGE POLLING WITH RING NOTIFICATION ──────────────────
+let messagePollInterval = null;
+let lastMessageCheck = null;
+
+function startMessagePolling() {
+  if (messagePollInterval) clearInterval(messagePollInterval);
+  lastMessageCheck = new Date().toISOString();
+  // Check every 15 seconds for new messages
+  messagePollInterval = setInterval(checkForNewMessages, 15000);
+}
+
+async function checkForNewMessages() {
+  if (!S.user) return;
+  try {
+    const result = await api('checkNewMessages', { 
+      userid: S.user.userid, 
+      lastCheck: lastMessageCheck 
+    });
+    if (result.success && result.hasNewMessages) {
+      // New messages found - play ring sound!
+      playRingSound();
+      
+      // Send browser notification
+      sendBrowserNotification(
+        '🔔 New Message!', 
+        `You have ${result.messageCount} new message${result.messageCount > 1 ? 's' : ''} in chat`,
+        'new-message-' + Date.now()
+      );
+      
+      // Update last check time
+      lastMessageCheck = new Date().toISOString();
+      
+      // Update chat if open
+      if (S.chatOpen) {
+        renderChatMessages();
+      }
+      
+      // Show dot on chat icon
+      S.unreadCount = (S.unreadCount || 0) + result.messageCount;
+      updateChatNotificationDot(true);
+      
+      // Show toast notification
+      showToast(`🔔 ${result.messageCount} new message${result.messageCount > 1 ? 's' : ''}!`);
+    }
+  } catch(err) {
+    // Silent fail
+  }
 }
 
 // ── CHAT WITH MENTIONS ──────────────────────────────────────
@@ -1115,14 +1223,12 @@ function renderChatMessages() {
       // detect mentions for current user
       if (currentCount > S.lastMessageCount && S.lastMessageCount > 0) {
         const newMsgs = msgs.slice(S.lastMessageCount);
-        // check each new message for mention of current user
+        // Check each new message for mention of current user
         const mentions = newMsgs.filter(m => m.userid !== uid && m.message && m.message.includes('@' + uid));
         if (mentions.length > 0) {
-          // Play sound for every mention
-          playMentionSound();
-          // Also send browser notification
-          const mentionUser = mentions[0].userid;
-          sendBrowserNotification('🔔 You were mentioned!', `@${mentionUser} mentioned you in chat`, 'mention-' + Date.now());
+          // Play ring sound for mention
+          playRingSound();
+          sendBrowserNotification('🔔 You were mentioned!', `@${mentions[0].userid} mentioned you in chat`, 'mention-' + Date.now());
           if (!isChatOpen) {
             S.unreadCount += mentions.length;
             updateChatNotificationDot(true);
@@ -1170,7 +1276,6 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && $('login-screen').style.display !== 'none') doLogin();
   if (e.key === 'Enter' && $('promo-overlay').classList.contains('show')) submitPromo();
   if (e.key === 'Escape') { closePromo(); $('user-dd').classList.remove('open'); }
-  // mention navigation
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     const sug = $('mention-suggest');
     if (sug.classList.contains('show') && mentionUsers.length) {
@@ -1205,7 +1310,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const fresh = Array.isArray(users) ? users.find(u => u.userid === savedUid) : null;
     $('login-btn').disabled = false;
     $('login-btn-txt').textContent = 'Sign In';
-    if (fresh) { S.user = { ...fresh }; enterDashboard(); await loadAllData(); setTimeout(checkAndRequestNotification, 1500); }
+    if (fresh) { 
+      S.user = { ...fresh }; 
+      enterDashboard(); 
+      await loadAllData(); 
+      startMessagePolling();
+      setTimeout(checkAndRequestNotification, 1500);
+    }
     else localStorage.removeItem('r2_userid');
   } catch(err) {
     $('login-btn').disabled = false;
